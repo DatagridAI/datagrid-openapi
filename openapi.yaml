@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: "0.0.1"
+  version: "0.1.0-alpha.2"
   title: Datagrid API
   description: Datagrid API
 servers:
@@ -343,12 +343,22 @@ components:
     ConverseConfig:
       type: object
       properties:
+        system_prompt:
+          type: string
+          description: "Directs your AI Agent's operational behavior."
+        agent_model:
+          $ref: "#/components/schemas/AgentModel"
         knowledge_ids:
           type: array
           nullable: true
           description: "Array of Knowledge IDs the agent should use during the converse. If not provided - default settings are used. If null provided - all available knowledge is used."
           items:
             type: string
+
+    AgentModel:
+      type: string
+      enum: ["magpie-1", "mapgie-1.1"]
+      description: "The version of Datagrid's agent brain."
 
     ConverseEvent:
       description: "Events that are sent via SSE. Not available when stream isn't defined in request body or set to false"
@@ -359,10 +369,10 @@ components:
     ConverseStatusEvent:
       type: object
       required:
-        - type
+        - event
         - data
       properties:
-        type:
+        event:
           $ref: "#/components/schemas/ConverseStatusEventType"
         data:
           $ref: "#/components/schemas/ConverseStatus"
@@ -391,10 +401,10 @@ components:
     ConverseContentMessageDeltaEvent:
       type: object
       required:
-        - type
+        - event
         - data
       properties:
-        type:
+        event:
           type: string
           enum: ["delta"]
           description: "Type of the event which is always delta"
