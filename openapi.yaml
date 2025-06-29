@@ -1,1 +1,1440 @@
-{"openapi":"3.0.3","info":{"version":"0.1.1","title":"Datagrid API","description":"Datagrid API"},"servers":[{"url":"https://api.datagrid.com/v1"}],"security":[{"BearerAuth":[]}],"paths":{"/converse":{"post":{"summary":"Converse","operationId":"Converse","description":"Converse with an AI Agent","tags":["Converse"],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ConverseRequestBody"}}}},"responses":{"200":{"description":"Converse response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ConverseResponse"}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.converse({ prompt: 'string' });\n\nconsole.log(response.agent_id);"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nresponse = client.converse(\n    prompt=\"string\",\n)\nprint(response.agent_id)"}]}},"/files":{"post":{"summary":"Create files","operationId":"Files.createFiles","description":"Create files which can be passed as input to agents.","tags":["Files"],"requestBody":{"required":true,"content":{"multipart/form-data":{"schema":{"type":"object","required":["file"],"properties":{"file":{"type":"string","format":"binary","nullable":false}}}}}},"responses":{"201":{"description":"Successfully created file","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DatagridFile"}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nconst fileObject = await client.files.create({ file: fs.createReadStream('path/to/file') });\n\nconsole.log(fileObject.id);"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nfile_object = client.files.create(\n    file=b\"raw file contents\",\n)\nprint(file_object.id)"}]},"get":{"summary":"List files","operationId":"Files.listFiles","description":"Returns the list of files.","tags":["Files"],"parameters":[{"$ref":"#/components/parameters/limit"},{"$ref":"#/components/parameters/after"},{"$ref":"#/components/parameters/before"}],"responses":{"200":{"description":"List of files","content":{"application/json":{"schema":{"type":"object","required":["object","data"],"properties":{"object":{"type":"string","enum":["list"]},"data":{"type":"array","items":{"$ref":"#/components/schemas/DatagridFile"},"description":"An array containing the actual response elements, paginated by any request parameters."},"has_more":{"type":"boolean","description":"Whether or not there are more elements available after this set. If false, this set comprises the end of the list."}}}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const fileObject of client.files.list()) {\n  console.log(fileObject.id);\n}"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\npage = client.files.list()\npage = page.data[0]\nprint(page.id)"}]}},"/files/{file_id}":{"get":{"summary":"Retrieve file","operationId":"Files.retrieveFile","description":"Retrieves a file by id.","tags":["Files"],"parameters":[{"name":"file_id","in":"path","required":true,"schema":{"type":"string"},"description":"The id of the file to retrieve."}],"responses":{"200":{"description":"Retrieved file","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DatagridFile"}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nconst fileObject = await client.files.retrieve('file_id');\n\nconsole.log(fileObject.id);"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nfile_object = client.files.retrieve(\n    \"file_id\",\n)\nprint(file_object.id)"}]},"delete":{"summary":"Delete file","operationId":"Files.deleteFile","description":"Delete file.","tags":["Files"],"parameters":[{"name":"file_id","in":"path","required":true,"schema":{"type":"string"},"description":"The id of the file to delete."}],"responses":{"200":{"description":"Successfully deleted file"}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nawait client.files.delete('file_id');"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nclient.files.delete(\n    \"file_id\",\n)"}]}},"/files/{file_id}/content":{"get":{"summary":"Retrieve file content","operationId":"Files.downloadFile","description":"Returns the content of a file.","tags":["Files"],"parameters":[{"name":"file_id","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"File content","content":{"application/octet-stream":{"schema":{"type":"string","format":"binary"}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nconst response = await client.files.content('file_id');\n\nconsole.log(response);\n\nconst content = await response.blob();\nconsole.log(content);"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nresponse = client.files.content(\n    \"file_id\",\n)\nprint(response)\ncontent = response.read()\nprint(content)"}]}},"/knowledge":{"post":{"summary":"Create knowledge","operationId":"Knowledge.createKnowledge","description":"Create knowledge which will be learned and leveraged by agents.","tags":["Knowledge"],"requestBody":{"required":true,"content":{"multipart/form-data":{"schema":{"type":"object","required":["files"],"properties":{"name":{"type":"string","description":"The name of the knowledge."},"files":{"type":"array","items":{"type":"string","format":"binary"},"nullable":false,"description":"The files to be uploaded and learned. Supported media types are `pdf`, `json`, `csv`, `text`, `png`, `jpeg`, `excel`, `google sheets`."}}}}}},"responses":{"201":{"description":"Successfully created knowledge","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Knowledge"}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nconst knowledge = await client.knowledge.create({ files: [fs.createReadStream('path/to/file')] });\n\nconsole.log(knowledge.id);"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nknowledge = client.knowledge.create(\n    files=[b\"raw file contents\"],\n)\nprint(knowledge.id)"}]},"get":{"summary":"List knowledge","operationId":"Knowledge.listKnowledge","description":"Returns the list of knowledge.","tags":["Knowledge"],"parameters":[{"$ref":"#/components/parameters/limit"},{"$ref":"#/components/parameters/after"},{"$ref":"#/components/parameters/before"}],"responses":{"200":{"description":"List of knowledge","content":{"application/json":{"schema":{"type":"object","required":["object","data"],"properties":{"object":{"type":"string","enum":["list"]},"data":{"type":"array","items":{"$ref":"#/components/schemas/Knowledge"},"description":"An array containing the actual response elements, paginated by any request parameters."},"has_more":{"type":"boolean","description":"Whether or not there are more elements available after this set. If false, this set comprises the end of the list."}}}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const knowledge of client.knowledge.list()) {\n  console.log(knowledge.id);\n}"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\npage = client.knowledge.list()\npage = page.data[0]\nprint(page.id)"}]}},"/knowledge/{knowledge_id}":{"get":{"summary":"Retrieve knowledge","operationId":"Knowledge.retrieveKnowledge","description":"Retrieves a knowledge by id.","tags":["Knowledge"],"parameters":[{"name":"knowledge_id","in":"path","required":true,"schema":{"type":"string"},"description":"The id of the knowledge to retrieve."}],"responses":{"200":{"description":"Retrieved knowledge","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Knowledge"}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nconst knowledge = await client.knowledge.retrieve('knowledge_id');\n\nconsole.log(knowledge.id);"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nknowledge = client.knowledge.retrieve(\n    \"knowledge_id\",\n)\nprint(knowledge.id)"}]},"patch":{"summary":"Update knowledge","operationId":"Knowledge.updateKnowledge","description":"Update a knowledge's attributes.","tags":["Knowledge"],"parameters":[{"name":"knowledge_id","in":"path","required":true,"schema":{"type":"string"},"description":"The id of the knowledge to update."}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","description":"The new name for the `knowledge`.","required":["name"],"properties":{"name":{"type":"string"}}}}}},"responses":{"200":{"description":"Successfully updated knowledge","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"}}}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nconst knowledge = await client.knowledge.update('knowledge_id', { name: 'name' });\n\nconsole.log(knowledge.name);"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nknowledge = client.knowledge.update(\n    knowledge_id=\"knowledge_id\",\n    name=\"name\",\n)\nprint(knowledge.name)"}]},"delete":{"summary":"Delete knowledge","operationId":"Knowledge.deleteKnowledge","description":"Delete knowledge.","tags":["Knowledge"],"parameters":[{"name":"knowledge_id","in":"path","required":true,"schema":{"type":"string"},"description":"The id of the knowledge to delete."}],"responses":{"200":{"description":"Successfully deleted knowledge"}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\nawait client.knowledge.delete('knowledge_id');"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\nclient.knowledge.delete(\n    \"knowledge_id\",\n)"}]}},"/search":{"get":{"summary":"Semantic Search","description":"[BETA] Semantic search across your workspace resources.","operationId":"search","tags":["Search"],"parameters":[{"name":"query","in":"query","required":true,"schema":{"type":"string"}},{"$ref":"#/components/parameters/next"},{"$ref":"#/components/parameters/limit"}],"responses":{"200":{"description":"Search results","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SearchResult"}}}}},"x-codeSamples":[{"lang":"JavaScript","source":"import Datagrid from 'datagrid-ai';\n\nconst client = new Datagrid({\n  apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted\n});\n\n// Automatically fetches more pages as needed.\nfor await (const searchResultItem of client.search.search({ query: 'query' })) {\n  console.log(searchResultItem.content);\n}"},{"lang":"Python","source":"import os\nfrom datagrid_ai import Datagrid\n\nclient = Datagrid(\n    api_key=os.environ.get(\"DATAGRID_API_KEY\"),  # This is the default and can be omitted\n)\npage = client.search.search(\n    query=\"query\",\n)\npage = page.data[0]\nprint(page.content)"}]}}},"components":{"securitySchemes":{"BearerAuth":{"type":"http","scheme":"bearer"}},"parameters":{"limit":{"name":"limit","in":"query","schema":{"type":"integer","default":20,"minimum":1,"maximum":100},"required":false,"description":"The limit on the number of objects to return, ranging between 1 and 100."},"after":{"name":"after","in":"query","schema":{"type":"string"},"required":false,"description":"A cursor to use in pagination. `after` is an object ID that defines your place in the list. For example, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `after=obj_foo` to fetch the next page of the list."},"before":{"name":"before","in":"query","schema":{"type":"string"},"required":false,"description":"A cursor to use in pagination. `before` is an object ID that defines your place in the list. For example, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `before=obj_bar` to fetch the previous page of the list."},"next":{"name":"next","in":"query","schema":{"type":"string"},"required":false,"description":"A cursor to use in pagination to continue a query from the previous request. This is automatically added when the request has more results to fetch."}},"schemas":{"AgentModel":{"type":"string","enum":["magpie-1","magpie-1.1","magpie-1.1-flash"],"description":"The version of Datagrid's agent brain."},"AgentTool":{"type":"string","enum":["data_analysis","semantic_search","agent_memory","schema_info","table_info","create_dataset","calendar","email","schedule_recurring_message_tool","procore","egnyte","notion","google_sheets","slack","microsoft_teams","sharepoint","drive","fieldwire","webbrowser","pdf_manipulation","pdf_generator","acc","docusign","webflow","hubspot","nec","github","data_classification","data_extraction","image_detection","attachment_extraction","pdf_extraction","connect_data","download_data","web_search","fetch_url","company_prospect_researcher","people_prospect_researcher"]},"LlmModel":{"type":"string","description":"The LLM used to generate responses.","enum":["gemini-1.5-flash-001","gemini-1.5-flash-002","gemini-2.0-flash-001","gemini-2.0-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash","gemini-1.5-pro-001","gemini-1.5-pro-002","gemini-2.5-pro-preview-05-06","gemini-2.5-pro","chatgpt-4o-latest","gpt-4","gpt-4-turbo","gpt-4o","gpt-4o-mini"]},"ConverseRequestBody":{"type":"object","required":["prompt"],"properties":{"prompt":{"oneOf":[{"type":"string","title":"Text prompt","description":"A text prompt to send to the agent."},{"type":"array","title":"Input item list","description":"A list of one or many input items to the agent, containing \ndifferent content types.\n","items":{"$ref":"#/components/schemas/InputItem"}}]},"config":{"$ref":"#/components/schemas/ConverseConfig","description":"The config that overrides the default config of the agent for that converse."},"agent_id":{"type":"string","description":"The ID of the agent that should be used for the converse. If both agent_id and conversation_id aren't provided - the new agent is created."},"conversation_id":{"type":"string","description":"The ID of the present conversation to use. If it's not provided - a new conversation will be created."},"stream":{"type":"boolean","description":"Determines the response type of the converse. Response is the Server-Sent Events if stream is set to true.","default":false},"generate_citations":{"type":"boolean","description":"Determines whether the response should include citations. When enabled, the agent will generate citations for factual statements.","default":false}}},"InputItem":{"type":"object","title":"Input message","description":"A message input to the model with a role indicating instruction following `agent` role are presumed to have been generated by the model in previous interactions.\n","properties":{"type":{"type":"string","description":"The type of the message input. Always `message`.\n","enum":["message"],"x-stainless-const":true},"role":{"type":"string","description":"The role of the message input. Always `user`.\n","enum":["user"]},"content":{"description":"Text or file input to the agent.\n","oneOf":[{"type":"string","title":"Text input","description":"A text input to the agent.\n"},{"$ref":"#/components/schemas/InputMessageContentList"}]}},"required":["role","content"]},"InputMessageContentList":{"type":"array","title":"Input item content list","description":"A list of one or many input items to the model, containing different content types.\n","items":{"$ref":"#/components/schemas/InputContent"}},"InputContent":{"oneOf":[{"$ref":"#/components/schemas/InputText"},{"$ref":"#/components/schemas/InputFile"}]},"InputText":{"type":"object","title":"Text input","description":"A text input to the model.\n","properties":{"type":{"type":"string","description":"The type of the input item. Always `input_text`.\n","enum":["input_text"],"x-stainless-const":true},"text":{"type":"string","description":"The text input to the model.\n"}},"required":["type","text"]},"InputFile":{"type":"object","title":"File input","description":"A file input to the model.\n","properties":{"type":{"type":"string","description":"The type of the input item. Always `input_file`.\n","enum":["input_file"],"x-stainless-const":true},"file_id":{"type":"string","description":"The ID of the file to be sent to the model.\n"}},"required":["type","file_id"]},"ConverseAllResponses":{"oneOf":[{"$ref":"#/components/schemas/ConverseResponse"},{"$ref":"#/components/schemas/ConverseEvent"}]},"ConverseResponse":{"type":"object","required":["object","content","agent_id","conversation_id"],"properties":{"object":{"type":"string","enum":["conversation.message"]},"content":{"type":"array","description":"Contents of the converse response.","items":{"type":"object","required":["text"],"properties":{"text":{"type":"string"}}}},"agent_id":{"type":"string","description":"The ID of the agent used for the converse."},"conversation_id":{"type":"string","description":"The ID of the agent conversation."},"citations":{"$ref":"#/components/schemas/Citations"}}},"Citations":{"type":"array","description":"Array of citations that provide knowledges for factual statements in the response. Each citation includes the referenced text and its knowledges.","items":{"type":"object","required":["citation","knowledges"],"properties":{"citation":{"type":"string","description":"The text snippet from the response that is being cited."},"knowledges":{"type":"array","description":"Array of knowledges that support this citation.","items":{"$ref":"#/components/schemas/CitationKnowledge"}}}}},"CitationKnowledge":{"type":"object","required":["type","knowledge_id","confirmations"],"properties":{"type":{"type":"string","enum":["image","pdf_page","record","web_search","sql_query_result"]},"knowledge_id":{"type":"string","description":"Id of the knowledge."},"confirmations":{"type":"array","description":"An array of text snippets from the knowledge that confirm the citation.","items":{"type":"string"}}}},"ConverseConfig":{"type":"object","properties":{"system_prompt":{"type":"string","description":"Directs your AI Agent's operational behavior."},"agent_model":{"$ref":"#/components/schemas/AgentModel"},"llm_model":{"$ref":"#/components/schemas/LlmModel"},"knowledge_ids":{"type":"array","nullable":true,"description":"Array of Knowledge IDs the agent should use during the converse. If not provided - default settings are used. If null provided - all available knowledge is used.","items":{"type":"string"}},"agent_tools":{"description":"Array of the agent tools to enable. If not provided - default tools of the agent are used. If empty list provided - none of the tools are used. If null provided - all tools are used.\n\nKnowledge management tools:\n- data_analysis: Answer statistical or analytical questions like \"Show my quarterly revenue growth\"\n- semantic_search: Search knowledge through natural language queries.\n- agent_memory: Agents can remember experiences, conversations and user preferences.\n- schema_info: Helps the Agent understand column names and dataset purpose. Avoid disabling\n- table_info: Allow the AI Agent to get information about datasets and schemas\n- create_dataset: Agents respond with data tables\n\nActions:\n- calendar: Allow the Agent to access and make changes to your Google Calendar\n- schedule_recurring_message_tool: Eliminate busywork such as: \"Send a summary of today's meetings at 5pm on workdays\"\n\nData processing tools:\n- data_classification: Agents handle queries like \"Label these emails as high, medium, or low priority\"\n- data_extraction: Helps the agent understand data from other tools. Avoid disabling\n- image_detection: Extract information from images using AI\n- pdf_extraction: Extraction of information from PDFs using AI\n\nEnhanced response tools:\n- connect_data: Agents provide buttons to import data in response to queries like \"Connect Hubspot\"\n- download_data: Agents handle queries like \"download the table as CSV\"\n\nWeb tools:\n- web_search: Agents search the internet, and provide links to their sources\n- fetch_url: Fetch URL content\n- company_prospect_researcher: Agents provide information about companies\n- people_prospect_researcher: Agents provide information about people\n","type":"array","nullable":true,"items":{"$ref":"#/components/schemas/AgentTool"}},"custom_prompt":{"type":"string","description":"Use custom prompt to instruct the style and formatting of the agent's response"}}},"ConverseEvent":{"description":"Events that are sent via SSE. Not available when stream isn't defined in request body or set to false","oneOf":[{"$ref":"#/components/schemas/ConverseStatusEvent"},{"$ref":"#/components/schemas/ConverseContentMessageDeltaEvent"}]},"ConverseStatusEvent":{"type":"object","required":["event","data"],"properties":{"event":{"$ref":"#/components/schemas/ConverseStatusEventType"},"data":{"$ref":"#/components/schemas/ConverseStatus"}}},"ConverseStatusEventType":{"type":"string","enum":["start","end"]},"ConverseStatus":{"type":"object","required":["status","agent_id","conversation_id"],"properties":{"status":{"type":"string","description":"Name of the status"},"agent_id":{"type":"string","description":"The ID of the agent used for the converse."},"conversation_id":{"type":"string","description":"The ID of the agent conversation."},"citations":{"$ref":"#/components/schemas/Citations"}}},"ConverseContentMessageDeltaEvent":{"type":"object","required":["event","data"],"properties":{"event":{"type":"string","enum":["delta"],"description":"Type of the event which is always delta"},"data":{"$ref":"#/components/schemas/ConverseContentMessageDelta"}}},"ConverseContentMessageDelta":{"type":"object","required":["delta"],"properties":{"delta":{"type":"object","required":["type","text"],"properties":{"type":{"type":"string","enum":["text"]},"text":{"type":"string"}},"description":"Delta of the response message produced by the agent."}}},"DatagridFile":{"type":"object","description":"The `File` object represents a document that has been uploaded to Datagrid.","required":["object","id","filename","created_at","bytes","media_type"],"properties":{"object":{"type":"string","enum":["file"],"description":"The object type, which is always `file`."},"id":{"type":"string","description":"The file identifier, which can be referenced in the API endpoints."},"filename":{"type":"string","description":"The name of the file"},"created_at":{"type":"string","format":"date-time","description":"The ISO string for when the file was created."},"media_type":{"type":"string","description":"The media type of the file."}}},"Knowledge":{"type":"object","description":"The `knowledge` object represents knowledge that an agent may leverage to respond.","required":["object","id","name","created_at","status","row_counts"],"properties":{"object":{"type":"string","enum":["knowledge"],"description":"The object type, which is always `knowledge`."},"id":{"type":"string","description":"The knowledge identifier, which can be referenced in the API endpoints."},"name":{"type":"string","description":"The name of the knowledge"},"created_at":{"type":"string","format":"date-time","description":"The ISO string for when the knowledge was created."},"status":{"$ref":"#/components/schemas/KnowledgeStatus"},"row_counts":{"type":"object","description":"Row count statistics for the knowledge.","required":["total","completed","failed"],"properties":{"total":{"type":"number","description":"The total number of rows in the knowledge."},"completed":{"type":"number","description":"The number of rows successfully learned."},"failed":{"type":"number","description":"The number of rows that failed to be processed for learning."}}}}},"KnowledgeStatus":{"type":"string","enum":["pending","partial","ready"],"description":"The current knowledge status can be one of three values: `pending`, `partial`, or `ready`. `pending` indicates that the knowledge is awaiting learning and will not be used by the agent when responding. `partial` indicates that the knowledge is partially learned. The agent may use some aspects of it when responding. `ready` indicates that the knowledge is fully learned and will be completely utilized in responses."},"SearchResult":{"type":"object","required":["object","data"],"properties":{"object":{"type":"string","enum":["list"]},"data":{"type":"array","items":{"$ref":"#/components/schemas/SearchResultItem"},"description":"An array containing the found search items."},"next":{"type":"string","description":"Cursor for fetching the next page of results."}}},"SearchResultResourceType":{"type":"string","enum":["knowledge_metadata","table_metadata","row_metadata","attachment_metadata","message_metadata"]},"SearchResultResource":{"oneOf":[{"$ref":"#/components/schemas/KnowledgeMetadata"},{"$ref":"#/components/schemas/TableMetadata"},{"$ref":"#/components/schemas/RowMetadata"},{"$ref":"#/components/schemas/AttachmentMetadata"},{"$ref":"#/components/schemas/MessageMetadata"}]},"SearchResultItem":{"type":"object","required":["object","score","updated_at","content","resource"],"properties":{"object":{"type":"string","enum":["search_result_item"],"description":"The object type, which is always `search_result_item`."},"score":{"type":"number","description":"The score of the item, between 0 and 1."},"updated_at":{"type":"string","format":"date-time","description":"The date and time the item was last updated."},"title":{"type":"string","description":"The title of the item."},"summary":{"type":"string","description":"The summary of the item."},"content":{"type":"array","items":{"type":"string"},"description":"Text snippets relevant to the search query."},"resource":{"description":"The resource that matched the search query.","$ref":"#/components/schemas/SearchResultResource"}}},"KnowledgeMetadata":{"type":"object","description":"Represents metadata for a knowledge object","required":["object","id","name","navigation_item","url"],"properties":{"object":{"type":"string","enum":["knowledge_metadata"],"description":"The object type, which is always `knowledge_metadata`."},"id":{"type":"string","description":"The unique identifier of the knowledge."},"name":{"type":"string","description":"The name of the knowledge."},"navigation_item":{"$ref":"#/components/schemas/NavigationItemMetadata","description":"The navigation item of the knowledge."},"url":{"type":"string","description":"The url of the knowledge."}}},"TableMetadata":{"type":"object","description":"Represents metadata for a table in a knowledge object","required":["object","id","name","knowledge","url"],"properties":{"object":{"type":"string","enum":["table_metadata"],"description":"The object type, which is always `table_metadata`."},"id":{"type":"string","description":"The unique identifier for the table."},"name":{"type":"string","description":"The name of the table."},"knowledge":{"$ref":"#/components/schemas/KnowledgeMetadata","description":"The knowledge object that the table belongs to."},"url":{"type":"string","description":"The url of the table."}}},"RowMetadata":{"type":"object","description":"Metadata of a row in a table","required":["object","id","table","url"],"properties":{"object":{"type":"string","enum":["row_metadata"],"description":"The object type, which is always `row_metadata`."},"id":{"type":"string","description":"The id of the row (__datagrid__uuid), unique within the table."},"table":{"$ref":"#/components/schemas/TableMetadata","description":"The table that the row belongs to."},"url":{"type":"string","description":"The url of the row of the table."}}},"AttachmentMetadata":{"type":"object","description":"Metadata of an attachment object","required":["object","media_type","name","source","url"],"properties":{"object":{"type":"string","enum":["attachment_metadata"],"description":"The object type, which is always `attachment_metadata`."},"name":{"type":"string","description":"The name of the attachment."},"media_type":{"type":"string","description":"The media type of the attachment."},"url":{"type":"string","description":"The url of the blob of the attachment."},"page":{"type":"object","required":["pageNumber","url"],"properties":{"pageNumber":{"type":"number","description":"The page number of the attachment."},"url":{"type":"string","description":"The url of the blob of the page."}}},"source":{"oneOf":[{"$ref":"#/components/schemas/MessageMetadata"},{"$ref":"#/components/schemas/RowMetadata"}],"description":"The source of the attachment."}}},"MessageMetadata":{"type":"object","description":"Metadata of a conversation message object","required":["object","conversation","id","author_id","author_type","url"],"properties":{"object":{"type":"string","enum":["message_metadata"],"description":"The object type, which is always `message_metadata`."},"conversation":{"$ref":"#/components/schemas/ConversationMetadata","description":"The conversation that the message belongs to."},"id":{"type":"string","description":"The id of the message."},"author_id":{"type":"string","description":"The identifier of the message author (either a user ID or agent ID)."},"author_type":{"type":"string","enum":["user","agent"],"description":"Indicates whether the author is a user or an agent."},"author_name":{"type":"string","description":"The pretty name of the author of the message."},"url":{"type":"string","description":"The url of the message."}}},"ConversationMetadata":{"type":"object","description":"Metadata of a conversation object","required":["object","id","url","name","navigation_item"],"properties":{"object":{"type":"string","enum":["conversation_metadata"],"description":"The object type, which is always `conversation_metadata`."},"id":{"type":"string","description":"The id of the conversation."},"url":{"type":"string","description":"The url of the conversation."},"navigation_item":{"$ref":"#/components/schemas/NavigationItemMetadata","description":"The navigation item of the conversation."},"name":{"type":"string","description":"The name of the conversation."}}},"NavigationItemMetadata":{"type":"object","description":"Metadata of a navigation item object","required":["object","id","name","url","item_type"],"properties":{"object":{"type":"string","enum":["navigation_item_metadata"],"description":"The object type, which is always `navigation_item_metadata`."},"id":{"type":"string","description":"The id of the navigation item."},"name":{"type":"string","description":"The name of the navigation item."},"emoticon":{"type":"string","description":"The emoticon of the navigation item."},"source_media_type":{"type":"string","description":"The media type of the navigation item if known."},"item_type":{"type":"string","description":"The type of the navigation item."},"url":{"type":"string","description":"The url of the navigation item."}}}}}}
+openapi: 3.0.3
+info:
+  version: 0.1.1
+  title: Datagrid API
+  description: Datagrid API
+servers:
+  - url: https://api.datagrid.com/v1
+security:
+  - BearerAuth: []
+paths:
+  /converse:
+    post:
+      summary: Converse
+      operationId: Converse
+      description: Converse with an AI Agent
+      tags:
+        - Converse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConverseRequestBody'
+      responses:
+        '200':
+          description: Converse response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConverseResponse'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            const response = await client.converse({ prompt: 'string' });
+
+            console.log(response.agent_id);
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            response = client.converse(
+                prompt="string",
+            )
+            print(response.agent_id)
+  /files:
+    post:
+      summary: Create files
+      operationId: Files.createFiles
+      description: Create files which can be passed as input to agents.
+      tags:
+        - Files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  nullable: false
+      responses:
+        '201':
+          description: Successfully created file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatagridFile'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            const fileObject = await client.files.create({ file: fs.createReadStream('path/to/file') });
+
+            console.log(fileObject.id);
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            file_object = client.files.create(
+                file=b"raw file contents",
+            )
+            print(file_object.id)
+    get:
+      summary: List files
+      operationId: Files.listFiles
+      description: Returns the list of files.
+      tags:
+        - Files
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of files
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DatagridFile'
+                    description: An array containing the actual response elements, paginated by any request parameters.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const fileObject of client.files.list()) {
+              console.log(fileObject.id);
+            }
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            page = client.files.list()
+            page = page.data[0]
+            print(page.id)
+  /files/{file_id}:
+    get:
+      summary: Retrieve file
+      operationId: Files.retrieveFile
+      description: Retrieves a file by id.
+      tags:
+        - Files
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the file to retrieve.
+      responses:
+        '200':
+          description: Retrieved file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatagridFile'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            const fileObject = await client.files.retrieve('file_id');
+
+            console.log(fileObject.id);
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            file_object = client.files.retrieve(
+                "file_id",
+            )
+            print(file_object.id)
+    delete:
+      summary: Delete file
+      operationId: Files.deleteFile
+      description: Delete file.
+      tags:
+        - Files
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the file to delete.
+      responses:
+        '200':
+          description: Successfully deleted file
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            await client.files.delete('file_id');
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            client.files.delete(
+                "file_id",
+            )
+  /files/{file_id}/content:
+    get:
+      summary: Retrieve file content
+      operationId: Files.downloadFile
+      description: Returns the content of a file.
+      tags:
+        - Files
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            const response = await client.files.content('file_id');
+
+            console.log(response);
+
+            const content = await response.blob();
+            console.log(content);
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            response = client.files.content(
+                "file_id",
+            )
+            print(response)
+            content = response.read()
+            print(content)
+  /knowledge:
+    post:
+      summary: Create knowledge
+      operationId: Knowledge.createKnowledge
+      description: Create knowledge which will be learned and leveraged by agents.
+      tags:
+        - Knowledge
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - files
+              properties:
+                name:
+                  type: string
+                  description: The name of the knowledge.
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  nullable: false
+                  description: >-
+                    The files to be uploaded and learned. Supported media types are `pdf`, `json`, `csv`,
+                    `text`, `png`, `jpeg`, `excel`, `google sheets`.
+      responses:
+        '201':
+          description: Successfully created knowledge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Knowledge'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            const knowledge = await client.knowledge.create({ files: [fs.createReadStream('path/to/file')] });
+
+            console.log(knowledge.id);
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            knowledge = client.knowledge.create(
+                files=[b"raw file contents"],
+            )
+            print(knowledge.id)
+    get:
+      summary: List knowledge
+      operationId: Knowledge.listKnowledge
+      description: Returns the list of knowledge.
+      tags:
+        - Knowledge
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of knowledge
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Knowledge'
+                    description: An array containing the actual response elements, paginated by any request parameters.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const knowledge of client.knowledge.list()) {
+              console.log(knowledge.id);
+            }
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            page = client.knowledge.list()
+            page = page.data[0]
+            print(page.id)
+  /knowledge/{knowledge_id}:
+    get:
+      summary: Retrieve knowledge
+      operationId: Knowledge.retrieveKnowledge
+      description: Retrieves a knowledge by id.
+      tags:
+        - Knowledge
+      parameters:
+        - name: knowledge_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the knowledge to retrieve.
+      responses:
+        '200':
+          description: Retrieved knowledge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Knowledge'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            const knowledge = await client.knowledge.retrieve('knowledge_id');
+
+            console.log(knowledge.id);
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            knowledge = client.knowledge.retrieve(
+                "knowledge_id",
+            )
+            print(knowledge.id)
+    patch:
+      summary: Update knowledge
+      operationId: Knowledge.updateKnowledge
+      description: Update a knowledge's attributes.
+      tags:
+        - Knowledge
+      parameters:
+        - name: knowledge_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the knowledge to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The new name for the `knowledge`.
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Successfully updated knowledge
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            const knowledge = await client.knowledge.update('knowledge_id', { name: 'name' });
+
+            console.log(knowledge.name);
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            knowledge = client.knowledge.update(
+                knowledge_id="knowledge_id",
+                name="name",
+            )
+            print(knowledge.name)
+    delete:
+      summary: Delete knowledge
+      operationId: Knowledge.deleteKnowledge
+      description: Delete knowledge.
+      tags:
+        - Knowledge
+      parameters:
+        - name: knowledge_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the knowledge to delete.
+      responses:
+        '200':
+          description: Successfully deleted knowledge
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            await client.knowledge.delete('knowledge_id');
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            client.knowledge.delete(
+                "knowledge_id",
+            )
+  /search:
+    get:
+      summary: Semantic Search
+      description: '[BETA] Semantic search across your workspace resources.'
+      operationId: search
+      tags:
+        - Search
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/next'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: process.env['DATAGRID_API_KEY'], // This is the default and can be omitted
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const searchResultItem of client.search.search({ query: 'query' })) {
+              console.log(searchResultItem.content);
+            }
+        - lang: Python
+          source: |-
+            import os
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key=os.environ.get("DATAGRID_API_KEY"),  # This is the default and can be omitted
+            )
+            page = client.search.search(
+                query="query",
+            )
+            page = page.data[0]
+            print(page.content)
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+      required: false
+      description: The limit on the number of objects to return, ranging between 1 and 100.
+    after:
+      name: after
+      in: query
+      schema:
+        type: string
+      required: false
+      description: >-
+        A cursor to use in pagination. `after` is an object ID that defines your place in the list. For
+        example, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent
+        call can include `after=obj_foo` to fetch the next page of the list.
+    before:
+      name: before
+      in: query
+      schema:
+        type: string
+      required: false
+      description: >-
+        A cursor to use in pagination. `before` is an object ID that defines your place in the list. For
+        example, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent
+        call can include `before=obj_bar` to fetch the previous page of the list.
+    next:
+      name: next
+      in: query
+      schema:
+        type: string
+      required: false
+      description: >-
+        A cursor to use in pagination to continue a query from the previous request. This is automatically
+        added when the request has more results to fetch.
+  schemas:
+    AgentModel:
+      type: string
+      enum:
+        - magpie-1
+        - magpie-1.1
+        - magpie-1.1-flash
+      description: The version of Datagrid's agent brain.
+    AgentTool:
+      type: string
+      enum:
+        - data_analysis
+        - semantic_search
+        - agent_memory
+        - schema_info
+        - table_info
+        - create_dataset
+        - calendar
+        - email
+        - schedule_recurring_message_tool
+        - procore
+        - egnyte
+        - notion
+        - google_sheets
+        - slack
+        - microsoft_teams
+        - sharepoint
+        - drive
+        - fieldwire
+        - webbrowser
+        - pdf_manipulation
+        - pdf_generator
+        - acc
+        - docusign
+        - webflow
+        - hubspot
+        - nec
+        - github
+        - data_classification
+        - data_extraction
+        - image_detection
+        - attachment_extraction
+        - pdf_extraction
+        - connect_data
+        - download_data
+        - web_search
+        - fetch_url
+        - company_prospect_researcher
+        - people_prospect_researcher
+    LlmModel:
+      type: string
+      description: The LLM used to generate responses.
+      enum:
+        - gemini-1.5-flash-001
+        - gemini-1.5-flash-002
+        - gemini-2.0-flash-001
+        - gemini-2.0-flash
+        - gemini-2.5-flash-preview-04-17
+        - gemini-2.5-flash
+        - gemini-1.5-pro-001
+        - gemini-1.5-pro-002
+        - gemini-2.5-pro-preview-05-06
+        - gemini-2.5-pro
+        - chatgpt-4o-latest
+        - gpt-4
+        - gpt-4-turbo
+        - gpt-4o
+        - gpt-4o-mini
+    ConverseRequestBody:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          oneOf:
+            - type: string
+              title: Text prompt
+              description: A text prompt to send to the agent.
+            - type: array
+              title: Input item list
+              description: |
+                A list of one or many input items to the agent, containing 
+                different content types.
+              items:
+                $ref: '#/components/schemas/InputItem'
+        config:
+          $ref: '#/components/schemas/ConverseConfig'
+          description: The config that overrides the default config of the agent for that converse.
+        agent_id:
+          type: string
+          description: >-
+            The ID of the agent that should be used for the converse. If both agent_id and conversation_id
+            aren't provided - the new agent is created.
+        conversation_id:
+          type: string
+          description: >-
+            The ID of the present conversation to use. If it's not provided - a new conversation will be
+            created.
+        stream:
+          type: boolean
+          description: >-
+            Determines the response type of the converse. Response is the Server-Sent Events if stream is set
+            to true.
+          default: false
+        generate_citations:
+          type: boolean
+          description: >-
+            Determines whether the response should include citations. When enabled, the agent will generate
+            citations for factual statements.
+          default: false
+    InputItem:
+      type: object
+      title: Input message
+      description: >
+        A message input to the model with a role indicating instruction following `agent` role are presumed to
+        have been generated by the model in previous interactions.
+      properties:
+        type:
+          type: string
+          description: |
+            The type of the message input. Always `message`.
+          enum:
+            - message
+          x-stainless-const: true
+        role:
+          type: string
+          description: |
+            The role of the message input. Always `user`.
+          enum:
+            - user
+        content:
+          description: |
+            Text or file input to the agent.
+          oneOf:
+            - type: string
+              title: Text input
+              description: |
+                A text input to the agent.
+            - $ref: '#/components/schemas/InputMessageContentList'
+      required:
+        - role
+        - content
+    InputMessageContentList:
+      type: array
+      title: Input item content list
+      description: |
+        A list of one or many input items to the model, containing different content types.
+      items:
+        $ref: '#/components/schemas/InputContent'
+    InputContent:
+      oneOf:
+        - $ref: '#/components/schemas/InputText'
+        - $ref: '#/components/schemas/InputFile'
+    InputText:
+      type: object
+      title: Text input
+      description: |
+        A text input to the model.
+      properties:
+        type:
+          type: string
+          description: |
+            The type of the input item. Always `input_text`.
+          enum:
+            - input_text
+          x-stainless-const: true
+        text:
+          type: string
+          description: |
+            The text input to the model.
+      required:
+        - type
+        - text
+    InputFile:
+      type: object
+      title: File input
+      description: |
+        A file input to the model.
+      properties:
+        type:
+          type: string
+          description: |
+            The type of the input item. Always `input_file`.
+          enum:
+            - input_file
+          x-stainless-const: true
+        file_id:
+          type: string
+          description: |
+            The ID of the file to be sent to the model.
+      required:
+        - type
+        - file_id
+    ConverseAllResponses:
+      oneOf:
+        - $ref: '#/components/schemas/ConverseResponse'
+        - $ref: '#/components/schemas/ConverseEvent'
+    ConverseResponse:
+      type: object
+      required:
+        - object
+        - content
+        - agent_id
+        - conversation_id
+      properties:
+        object:
+          type: string
+          enum:
+            - conversation.message
+        content:
+          type: array
+          description: Contents of the converse response.
+          items:
+            type: object
+            required:
+              - text
+            properties:
+              text:
+                type: string
+        agent_id:
+          type: string
+          description: The ID of the agent used for the converse.
+        conversation_id:
+          type: string
+          description: The ID of the agent conversation.
+        citations:
+          $ref: '#/components/schemas/Citations'
+    Citations:
+      type: array
+      description: >-
+        Array of citations that provide knowledges for factual statements in the response. Each citation
+        includes the referenced text and its knowledges.
+      items:
+        type: object
+        required:
+          - citation
+          - knowledges
+        properties:
+          citation:
+            type: string
+            description: The text snippet from the response that is being cited.
+          knowledges:
+            type: array
+            description: Array of knowledges that support this citation.
+            items:
+              $ref: '#/components/schemas/CitationKnowledge'
+    CitationKnowledge:
+      type: object
+      required:
+        - type
+        - knowledge_id
+        - confirmations
+      properties:
+        type:
+          type: string
+          enum:
+            - image
+            - pdf_page
+            - record
+            - web_search
+            - sql_query_result
+        knowledge_id:
+          type: string
+          description: Id of the knowledge.
+        confirmations:
+          type: array
+          description: An array of text snippets from the knowledge that confirm the citation.
+          items:
+            type: string
+    ConverseConfig:
+      type: object
+      properties:
+        system_prompt:
+          type: string
+          description: Directs your AI Agent's operational behavior.
+        agent_model:
+          $ref: '#/components/schemas/AgentModel'
+        llm_model:
+          $ref: '#/components/schemas/LlmModel'
+        knowledge_ids:
+          type: array
+          nullable: true
+          description: >-
+            Array of Knowledge IDs the agent should use during the converse. If not provided - default
+            settings are used. If null provided - all available knowledge is used.
+          items:
+            type: string
+        agent_tools:
+          description: >
+            Array of the agent tools to enable. If not provided - default tools of the agent are used. If
+            empty list provided - none of the tools are used. If null provided - all tools are used.
+
+
+            Knowledge management tools:
+
+            - data_analysis: Answer statistical or analytical questions like "Show my quarterly revenue
+            growth"
+
+            - semantic_search: Search knowledge through natural language queries.
+
+            - agent_memory: Agents can remember experiences, conversations and user preferences.
+
+            - schema_info: Helps the Agent understand column names and dataset purpose. Avoid disabling
+
+            - table_info: Allow the AI Agent to get information about datasets and schemas
+
+            - create_dataset: Agents respond with data tables
+
+
+            Actions:
+
+            - calendar: Allow the Agent to access and make changes to your Google Calendar
+
+            - schedule_recurring_message_tool: Eliminate busywork such as: "Send a summary of today's meetings
+            at 5pm on workdays"
+
+
+            Data processing tools:
+
+            - data_classification: Agents handle queries like "Label these emails as high, medium, or low
+            priority"
+
+            - data_extraction: Helps the agent understand data from other tools. Avoid disabling
+
+            - image_detection: Extract information from images using AI
+
+            - pdf_extraction: Extraction of information from PDFs using AI
+
+
+            Enhanced response tools:
+
+            - connect_data: Agents provide buttons to import data in response to queries like "Connect
+            Hubspot"
+
+            - download_data: Agents handle queries like "download the table as CSV"
+
+
+            Web tools:
+
+            - web_search: Agents search the internet, and provide links to their sources
+
+            - fetch_url: Fetch URL content
+
+            - company_prospect_researcher: Agents provide information about companies
+
+            - people_prospect_researcher: Agents provide information about people
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/AgentTool'
+        custom_prompt:
+          type: string
+          description: Use custom prompt to instruct the style and formatting of the agent's response
+    ConverseEvent:
+      description: Events that are sent via SSE. Not available when stream isn't defined in request body or set to false
+      oneOf:
+        - $ref: '#/components/schemas/ConverseStatusEvent'
+        - $ref: '#/components/schemas/ConverseContentMessageDeltaEvent'
+    ConverseStatusEvent:
+      type: object
+      required:
+        - event
+        - data
+      properties:
+        event:
+          $ref: '#/components/schemas/ConverseStatusEventType'
+        data:
+          $ref: '#/components/schemas/ConverseStatus'
+    ConverseStatusEventType:
+      type: string
+      enum:
+        - start
+        - end
+    ConverseStatus:
+      type: object
+      required:
+        - status
+        - agent_id
+        - conversation_id
+      properties:
+        status:
+          type: string
+          description: Name of the status
+        agent_id:
+          type: string
+          description: The ID of the agent used for the converse.
+        conversation_id:
+          type: string
+          description: The ID of the agent conversation.
+        citations:
+          $ref: '#/components/schemas/Citations'
+    ConverseContentMessageDeltaEvent:
+      type: object
+      required:
+        - event
+        - data
+      properties:
+        event:
+          type: string
+          enum:
+            - delta
+          description: Type of the event which is always delta
+        data:
+          $ref: '#/components/schemas/ConverseContentMessageDelta'
+    ConverseContentMessageDelta:
+      type: object
+      required:
+        - delta
+      properties:
+        delta:
+          type: object
+          required:
+            - type
+            - text
+          properties:
+            type:
+              type: string
+              enum:
+                - text
+            text:
+              type: string
+          description: Delta of the response message produced by the agent.
+    DatagridFile:
+      type: object
+      description: The `File` object represents a document that has been uploaded to Datagrid.
+      required:
+        - object
+        - id
+        - filename
+        - created_at
+        - bytes
+        - media_type
+      properties:
+        object:
+          type: string
+          enum:
+            - file
+          description: The object type, which is always `file`.
+        id:
+          type: string
+          description: The file identifier, which can be referenced in the API endpoints.
+        filename:
+          type: string
+          description: The name of the file
+        created_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the file was created.
+        media_type:
+          type: string
+          description: The media type of the file.
+    Knowledge:
+      type: object
+      description: The `knowledge` object represents knowledge that an agent may leverage to respond.
+      required:
+        - object
+        - id
+        - name
+        - created_at
+        - status
+        - row_counts
+      properties:
+        object:
+          type: string
+          enum:
+            - knowledge
+          description: The object type, which is always `knowledge`.
+        id:
+          type: string
+          description: The knowledge identifier, which can be referenced in the API endpoints.
+        name:
+          type: string
+          description: The name of the knowledge
+        created_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the knowledge was created.
+        status:
+          $ref: '#/components/schemas/KnowledgeStatus'
+        row_counts:
+          type: object
+          description: Row count statistics for the knowledge.
+          required:
+            - total
+            - completed
+            - failed
+          properties:
+            total:
+              type: number
+              description: The total number of rows in the knowledge.
+            completed:
+              type: number
+              description: The number of rows successfully learned.
+            failed:
+              type: number
+              description: The number of rows that failed to be processed for learning.
+    KnowledgeStatus:
+      type: string
+      enum:
+        - pending
+        - partial
+        - ready
+      description: >-
+        The current knowledge status can be one of three values: `pending`, `partial`, or `ready`. `pending`
+        indicates that the knowledge is awaiting learning and will not be used by the agent when responding.
+        `partial` indicates that the knowledge is partially learned. The agent may use some aspects of it when
+        responding. `ready` indicates that the knowledge is fully learned and will be completely utilized in
+        responses.
+    SearchResult:
+      type: object
+      required:
+        - object
+        - data
+      properties:
+        object:
+          type: string
+          enum:
+            - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultItem'
+          description: An array containing the found search items.
+        next:
+          type: string
+          description: Cursor for fetching the next page of results.
+    SearchResultResourceType:
+      type: string
+      enum:
+        - knowledge_metadata
+        - table_metadata
+        - row_metadata
+        - attachment_metadata
+        - message_metadata
+    SearchResultResource:
+      oneOf:
+        - $ref: '#/components/schemas/KnowledgeMetadata'
+        - $ref: '#/components/schemas/TableMetadata'
+        - $ref: '#/components/schemas/RowMetadata'
+        - $ref: '#/components/schemas/AttachmentMetadata'
+        - $ref: '#/components/schemas/MessageMetadata'
+    SearchResultItem:
+      type: object
+      required:
+        - object
+        - score
+        - updated_at
+        - content
+        - resource
+      properties:
+        object:
+          type: string
+          enum:
+            - search_result_item
+          description: The object type, which is always `search_result_item`.
+        score:
+          type: number
+          description: The score of the item, between 0 and 1.
+        updated_at:
+          type: string
+          format: date-time
+          description: The date and time the item was last updated.
+        title:
+          type: string
+          description: The title of the item.
+        summary:
+          type: string
+          description: The summary of the item.
+        content:
+          type: array
+          items:
+            type: string
+          description: Text snippets relevant to the search query.
+        resource:
+          description: The resource that matched the search query.
+          $ref: '#/components/schemas/SearchResultResource'
+    KnowledgeMetadata:
+      type: object
+      description: Represents metadata for a knowledge object
+      required:
+        - object
+        - id
+        - name
+        - navigation_item
+        - url
+      properties:
+        object:
+          type: string
+          enum:
+            - knowledge_metadata
+          description: The object type, which is always `knowledge_metadata`.
+        id:
+          type: string
+          description: The unique identifier of the knowledge.
+        name:
+          type: string
+          description: The name of the knowledge.
+        navigation_item:
+          $ref: '#/components/schemas/NavigationItemMetadata'
+          description: The navigation item of the knowledge.
+        url:
+          type: string
+          description: The url of the knowledge.
+    TableMetadata:
+      type: object
+      description: Represents metadata for a table in a knowledge object
+      required:
+        - object
+        - id
+        - name
+        - knowledge
+        - url
+      properties:
+        object:
+          type: string
+          enum:
+            - table_metadata
+          description: The object type, which is always `table_metadata`.
+        id:
+          type: string
+          description: The unique identifier for the table.
+        name:
+          type: string
+          description: The name of the table.
+        knowledge:
+          $ref: '#/components/schemas/KnowledgeMetadata'
+          description: The knowledge object that the table belongs to.
+        url:
+          type: string
+          description: The url of the table.
+    RowMetadata:
+      type: object
+      description: Metadata of a row in a table
+      required:
+        - object
+        - id
+        - table
+        - url
+      properties:
+        object:
+          type: string
+          enum:
+            - row_metadata
+          description: The object type, which is always `row_metadata`.
+        id:
+          type: string
+          description: The id of the row (__datagrid__uuid), unique within the table.
+        table:
+          $ref: '#/components/schemas/TableMetadata'
+          description: The table that the row belongs to.
+        url:
+          type: string
+          description: The url of the row of the table.
+    AttachmentMetadata:
+      type: object
+      description: Metadata of an attachment object
+      required:
+        - object
+        - media_type
+        - name
+        - source
+        - url
+      properties:
+        object:
+          type: string
+          enum:
+            - attachment_metadata
+          description: The object type, which is always `attachment_metadata`.
+        name:
+          type: string
+          description: The name of the attachment.
+        media_type:
+          type: string
+          description: The media type of the attachment.
+        url:
+          type: string
+          description: The url of the blob of the attachment.
+        page:
+          type: object
+          required:
+            - pageNumber
+            - url
+          properties:
+            pageNumber:
+              type: number
+              description: The page number of the attachment.
+            url:
+              type: string
+              description: The url of the blob of the page.
+        source:
+          oneOf:
+            - $ref: '#/components/schemas/MessageMetadata'
+            - $ref: '#/components/schemas/RowMetadata'
+          description: The source of the attachment.
+    MessageMetadata:
+      type: object
+      description: Metadata of a conversation message object
+      required:
+        - object
+        - conversation
+        - id
+        - author_id
+        - author_type
+        - url
+      properties:
+        object:
+          type: string
+          enum:
+            - message_metadata
+          description: The object type, which is always `message_metadata`.
+        conversation:
+          $ref: '#/components/schemas/ConversationMetadata'
+          description: The conversation that the message belongs to.
+        id:
+          type: string
+          description: The id of the message.
+        author_id:
+          type: string
+          description: The identifier of the message author (either a user ID or agent ID).
+        author_type:
+          type: string
+          enum:
+            - user
+            - agent
+          description: Indicates whether the author is a user or an agent.
+        author_name:
+          type: string
+          description: The pretty name of the author of the message.
+        url:
+          type: string
+          description: The url of the message.
+    ConversationMetadata:
+      type: object
+      description: Metadata of a conversation object
+      required:
+        - object
+        - id
+        - url
+        - name
+        - navigation_item
+      properties:
+        object:
+          type: string
+          enum:
+            - conversation_metadata
+          description: The object type, which is always `conversation_metadata`.
+        id:
+          type: string
+          description: The id of the conversation.
+        url:
+          type: string
+          description: The url of the conversation.
+        navigation_item:
+          $ref: '#/components/schemas/NavigationItemMetadata'
+          description: The navigation item of the conversation.
+        name:
+          type: string
+          description: The name of the conversation.
+    NavigationItemMetadata:
+      type: object
+      description: Metadata of a navigation item object
+      required:
+        - object
+        - id
+        - name
+        - url
+        - item_type
+      properties:
+        object:
+          type: string
+          enum:
+            - navigation_item_metadata
+          description: The object type, which is always `navigation_item_metadata`.
+        id:
+          type: string
+          description: The id of the navigation item.
+        name:
+          type: string
+          description: The name of the navigation item.
+        emoticon:
+          type: string
+          description: The emoticon of the navigation item.
+        source_media_type:
+          type: string
+          description: The media type of the navigation item if known.
+        item_type:
+          type: string
+          description: The type of the navigation item.
+        url:
+          type: string
+          description: The url of the navigation item.
