@@ -8,6 +8,316 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /connections:
+    post:
+      summary: Create connection
+      operationId: Connection.createConnection
+      description: >-
+        Creates a new connection to authenticate with a third-party service (like Google Drive, Hubspot,
+        Dropbox, etc.) and returns a redirect URL for the connection authentication flow.
+      tags:
+        - Connections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - connector_id
+              properties:
+                connector_id:
+                  type: string
+                  description: The connector ID for the third-party service to connect to.
+      responses:
+        '200':
+          description: Connection creation initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectURLResponse'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const redirectURLResponse = await client.connections.create({ connector_id: 'connector_id' });
+
+            console.log(redirectURLResponse.object);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            redirect_url_response = client.connections.create(
+                connector_id="connector_id",
+            )
+            print(redirect_url_response.object)
+    get:
+      summary: List connections
+      operationId: Connection.listConnections
+      description: Returns the list of authenticated connections to third-party services.
+      tags:
+        - Connections
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+        - name: connector_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter connections by connector ID.
+      responses:
+        '200':
+          description: List of connections
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Connection'
+                    description: An array containing the actual response elements, paginated by any request parameters.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const connection of client.connections.list()) {
+              console.log(connection.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.connections.list()
+            page = page.data[0]
+            print(page.id)
+  /connections/{connection_id}:
+    get:
+      summary: Retrieve connection
+      operationId: Connection.retrieveConnection
+      description: Retrieves details about an authenticated connection by id.
+      tags:
+        - Connections
+      parameters:
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the connection to retrieve.
+      responses:
+        '200':
+          description: Retrieved connection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connection'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const connection = await client.connections.retrieve('connection_id');
+
+            console.log(connection.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            connection = client.connections.retrieve(
+                "connection_id",
+            )
+            print(connection.id)
+    patch:
+      summary: Update connection
+      operationId: Connection.updateConnection
+      description: Update a connection's attributes.
+      tags:
+        - Connections
+      parameters:
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the connection to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: The name of the connection.
+      responses:
+        '200':
+          description: Successfully updated connection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connection'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const connection = await client.connections.update('connection_id', { name: 'name' });
+
+            console.log(connection.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            connection = client.connections.update(
+                connection_id="connection_id",
+                name="name",
+            )
+            print(connection.id)
+    delete:
+      summary: Delete connection
+      operationId: Connection.deleteConnection
+      description: Delete an authenticated connection to a third-party service.
+      tags:
+        - Connections
+      parameters:
+        - name: connection_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the connection to delete.
+      responses:
+        '200':
+          description: Successfully deleted connection
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.connections.delete('connection_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.connections.delete(
+                "connection_id",
+            )
+  /connectors:
+    get:
+      summary: List connectors
+      operationId: Connectors.listConnectors
+      description: Returns the list of available connectors that can be used to connect to third-party services.
+      tags:
+        - Connectors
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of connectors
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Connector'
+                    description: An array containing the actual response elements, paginated by any request parameters.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const connector of client.connectors.list()) {
+              console.log(connector.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.connectors.list()
+            page = page.data[0]
+            print(page.id)
   /converse:
     post:
       summary: Converse
@@ -51,6 +361,41 @@ paths:
                 prompt="string",
             )
             print(response.agent_id)
+  /credits:
+    get:
+      summary: Get credits
+      description: Summarise the credits in your account for the current billing period.
+      operationId: getCredits
+      tags:
+        - Credits
+      responses:
+        '200':
+          description: Credits Summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditsResponse'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const creditsResponse = await client.credits.get();
+
+            console.log(creditsResponse.consumed);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            credits_response = client.credits.get()
+            print(credits_response.consumed)
   /files:
     post:
       summary: Create files
@@ -217,7 +562,7 @@ paths:
             type: string
           description: The id of the file to delete.
       responses:
-        '200':
+        '204':
           description: Successfully deleted file
       x-codeSamples:
         - lang: JavaScript
@@ -301,18 +646,21 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required:
-                - files
               properties:
                 name:
                   type: string
                   description: The name of the knowledge.
+                  nullable: true
+                connection_id:
+                  type: string
+                  description: The id of the connection to be used to create the knowledge.
+                  nullable: true
                 files:
                   type: array
                   items:
                     type: string
                     format: binary
-                  nullable: false
+                  nullable: true
                   description: >-
                     The files to be uploaded and learned. Supported media types are `pdf`, `json`, `csv`,
                     `text`, `png`, `jpeg`, `excel`, `google sheets`.
@@ -322,7 +670,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Knowledge'
+                oneOf:
+                  - $ref: '#/components/schemas/Knowledge'
+                  - $ref: '#/components/schemas/RedirectURLResponse'
       x-codeSamples:
         - lang: JavaScript
           source: |-
@@ -332,9 +682,9 @@ paths:
               apiKey: 'My API Key',
             });
 
-            const knowledge = await client.knowledge.create({ files: [fs.createReadStream('path/to/file')] });
+            const knowledge = await client.knowledge.create();
 
-            console.log(knowledge.id);
+            console.log(knowledge);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -342,10 +692,8 @@ paths:
             client = Datagrid(
                 api_key="My API Key",
             )
-            knowledge = client.knowledge.create(
-                files=[b"raw file contents"],
-            )
-            print(knowledge.id)
+            knowledge = client.knowledge.create()
+            print(knowledge)
     get:
       summary: List knowledge
       operationId: Knowledge.listKnowledge
@@ -521,7 +869,7 @@ paths:
             type: string
           description: The id of the knowledge to delete.
       responses:
-        '200':
+        '204':
           description: Successfully deleted knowledge
       x-codeSamples:
         - lang: JavaScript
@@ -543,10 +891,146 @@ paths:
             client.knowledge.delete(
                 "knowledge_id",
             )
+  /user-memories:
+    get:
+      summary: List User Memory
+      operationId: Memory.listUserMemory
+      description: List the memories for a given user and agent that the user has access to
+      tags:
+        - Memory
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: User memory list
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserMemory'
+                    description: An array containing the actual response elements, paginated by any request parameters.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const users = await client.memory.user.list();
+
+            console.log(users.data);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            users = client.memory.user.list()
+            print(users.data)
+    post:
+      summary: Create User Memory
+      operationId: Memory.createUserMemory
+      description: Create a user memory
+      tags:
+        - Memory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserMemoryRequest'
+      responses:
+        '201':
+          description: Successfully created user memory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMemory'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const userMemory = await client.memory.user.create({ agent_id: 'agent_id', memory: 'memory' });
+
+            console.log(userMemory.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            user_memory = client.memory.user.create(
+                agent_id="agent_id",
+                memory="memory",
+            )
+            print(user_memory.id)
+  /user-memories/{user_memory_id}:
+    delete:
+      summary: Delete User Memory
+      operationId: Memory.deleteUserMemory
+      description: Delete a user memory
+      tags:
+        - Memory
+      parameters:
+        - name: user_memory_id
+          description: The ID of the user memory to delete.
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successfully deleted user memory
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.memory.user.delete('user_memory_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.memory.user.delete(
+                "user_memory_id",
+            )
   /search:
     get:
-      summary: Semantic Search
-      description: '[BETA] Semantic search across your workspace resources.'
+      summary: Search
+      description: '[BETA] Search across knowledge.'
       operationId: search
       tags:
         - Search
@@ -590,52 +1074,518 @@ paths:
             )
             page = page.data[0]
             print(page.content)
+  /secrets:
+    post:
+      summary: Create secret
+      operationId: Secrets.createSecret
+      description: Create a new secret that can be referenced in converse API calls.
+      tags:
+        - Secrets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - value
+              properties:
+                name:
+                  type: string
+                  description: The name of the secret
+                  maxLength: 300
+                value:
+                  type: string
+                  description: The secret value to store
+      responses:
+        '201':
+          description: Successfully created secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const secret = await client.secrets.create({ name: 'name', value: 'value' });
+
+            console.log(secret.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            secret = client.secrets.create(
+                name="name",
+                value="value",
+            )
+            print(secret.id)
+    get:
+      summary: List secrets
+      operationId: Secrets.listSecrets
+      description: Returns the list of user-created secrets.
+      tags:
+        - Secrets
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of secrets
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Secret'
+                    description: An array containing the actual response elements.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const secret of client.secrets.list()) {
+              console.log(secret.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.secrets.list()
+            page = page.data[0]
+            print(page.id)
+  /secrets/{secret_id}:
+    get:
+      summary: Retrieve secret
+      operationId: Secrets.retrieveSecret
+      description: Retrieve a specific secret by ID.
+      tags:
+        - Secrets
+      parameters:
+        - name: secret_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the secret to retrieve.
+      responses:
+        '200':
+          description: Successfully retrieved secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const secret = await client.secrets.retrieve('secret_id');
+
+            console.log(secret.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            secret = client.secrets.retrieve(
+                "secret_id",
+            )
+            print(secret.id)
+    delete:
+      summary: Delete secret
+      operationId: Secrets.deleteSecret
+      description: Delete a secret.
+      tags:
+        - Secrets
+      parameters:
+        - name: secret_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the secret to delete.
+      responses:
+        '200':
+          description: Successfully deleted secret
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.secrets.delete('secret_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.secrets.delete(
+                "secret_id",
+            )
+  /organization/teamspaces/{teamspace_id}:
+    get:
+      summary: Retrieve teamspace
+      operationId: Teamspaces.retrieveTeamspace
+      description: Retrieve a specific teamspace by ID.
+      tags:
+        - Teamspaces
+      parameters:
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace to retrieve.
+      responses:
+        '200':
+          description: Successfully retrieved teamspace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teamspace'
+        '404':
+          description: Teamspace not found
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const teamspace = await client.organization.teamspaces.retrieve('teamspace_id');
+
+            console.log(teamspace.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            teamspace = client.organization.teamspaces.retrieve(
+                "teamspace_id",
+            )
+            print(teamspace.id)
+    patch:
+      summary: Update teamspace
+      operationId: Teamspaces.updateTeamspace
+      description: Update the name and/or access settings of a teamspace.
+      tags:
+        - Teamspaces
+      parameters:
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The new name of the teamspace
+                  maxLength: 300
+                access:
+                  type: string
+                  enum:
+                    - open
+                    - closed
+                  description: >
+                    Open teamspaces allow all organization members to join without admin approval. Access for
+                    users who join this way is limited to conversations with agents in this teamspace. 
+
+
+                    Closed teamspaces require admin approval to join.
+      responses:
+        '200':
+          description: Successfully updated teamspace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teamspace'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const teamspace = await client.organization.teamspaces.patch('teamspace_id');
+
+            console.log(teamspace.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            teamspace = client.organization.teamspaces.patch(
+                teamspace_id="teamspace_id",
+            )
+            print(teamspace.id)
+  /organization/teamspaces:
+    post:
+      summary: Create teamspace
+      operationId: Teamspaces.createTeamspace
+      description: Create a new teamspace within your organization.
+      tags:
+        - Teamspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - access
+              properties:
+                name:
+                  type: string
+                  description: The name of the teamspace
+                  maxLength: 300
+                access:
+                  type: string
+                  enum:
+                    - open
+                    - closed
+                  description: >
+                    Open teamspaces allow all organization members to join without admin approval. Access for
+                    users who join this way is limited to conversations with agents in this teamspace. 
+
+
+                    Closed teamspaces require admin approval to join.
+      responses:
+        '201':
+          description: Successfully created teamspace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teamspace'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const teamspace = await client.organization.teamspaces.create({ access: 'open', name: 'name' });
+
+            console.log(teamspace.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            teamspace = client.organization.teamspaces.create(
+                access="open",
+                name="name",
+            )
+            print(teamspace.id)
+    get:
+      summary: List teamspaces
+      operationId: Teamspaces.listTeamspaces
+      description: Returns the list of teamspaces within your organization.
+      tags:
+        - Teamspaces
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of teamspaces
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Teamspace'
+                    description: An array containing the actual response elements.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const teamspace of client.organization.teamspaces.list()) {
+              console.log(teamspace.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.organization.teamspaces.list()
+            page = page.data[0]
+            print(page.id)
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
-  parameters:
-    limit:
-      name: limit
-      in: query
-      schema:
-        type: integer
-        default: 20
-        minimum: 1
-        maximum: 100
-      required: false
-      description: The limit on the number of objects to return, ranging between 1 and 100.
-    after:
-      name: after
-      in: query
-      schema:
-        type: string
-      required: false
-      description: >-
-        A cursor to use in pagination. `after` is an object ID that defines your place in the list. For
-        example, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent
-        call can include `after=obj_foo` to fetch the next page of the list.
-    before:
-      name: before
-      in: query
-      schema:
-        type: string
-      required: false
-      description: >-
-        A cursor to use in pagination. `before` is an object ID that defines your place in the list. For
-        example, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent
-        call can include `before=obj_bar` to fetch the previous page of the list.
-    next:
-      name: next
-      in: query
-      schema:
-        type: string
-      required: false
-      description: >-
-        A cursor to use in pagination to continue a query from the previous request. This is automatically
-        added when the request has more results to fetch.
   schemas:
+    RedirectURLResponse:
+      type: object
+      description: The `redirect_url` object represents a redirect url for a connection.
+      required:
+        - object
+        - redirect_url
+      properties:
+        object:
+          type: string
+          enum:
+            - redirect_url
+        redirect_url:
+          type: string
+          description: The redirect url for a connection.
+    Connection:
+      type: object
+      description: >-
+        The `connection` object represents an authenticated connection to a third-party service (like Google
+        Drive, Hubspot, Dropbox, etc.) that can be managed through the API.
+      required:
+        - object
+        - id
+        - name
+        - teamspace_id
+        - connector_id
+        - created_at
+        - updated_at
+      properties:
+        object:
+          type: string
+          enum:
+            - connection
+          description: The object type, which is always `connection`.
+        id:
+          type: string
+          description: The connection identifier, which can be referenced in the API endpoints.
+        name:
+          type: string
+          description: The name of the connection.
+        teamspace_id:
+          type: string
+          description: The teamspace ID that owns this connection.
+        connector_id:
+          type: string
+          description: The connector ID of the third-party service this connection authenticates with.
+        valid:
+          type: boolean
+          description: Whether the connection authentication is valid.
+        value:
+          type: string
+          description: The authentication value of the connection.
+        created_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the connection was created.
+        updated_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the connection was last updated.
+    Connector:
+      type: object
+      description: >-
+        The `connector` object represents an available connector that can be used to connect to a third-party
+        service.
+      required:
+        - object
+        - id
+        - applicationId
+        - name
+      properties:
+        object:
+          type: string
+          description: The object type, which is always `connector`.
+          enum:
+            - connector
+        id:
+          type: string
+          description: The unique identifier for the connector.
+        name:
+          type: string
+          description: The display name of the connector.
     AgentModel:
       type: string
       enum:
@@ -643,6 +1593,16 @@ components:
         - magpie-1.1
         - magpie-1.1-flash
       description: The version of Datagrid's agent brain.
+    AgentToolItem:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          $ref: '#/components/schemas/AgentTool'
+        connection_id:
+          type: string
+          description: The ID of the connection to use for the tool.
     AgentTool:
       type: string
       enum:
@@ -694,6 +1654,7 @@ components:
         - gemini-2.0-flash
         - gemini-2.5-flash-preview-04-17
         - gemini-2.5-flash
+        - gemini-2.5-flash-lite
         - gemini-1.5-pro-001
         - gemini-1.5-pro-002
         - gemini-2.5-pro-preview-05-06
@@ -716,35 +1677,91 @@ components:
             - type: array
               title: Input item list
               description: |
-                A list of one or many input items to the agent, containing 
+                A list of one or many input items to the agent, containing
                 different content types.
               items:
                 $ref: '#/components/schemas/InputItem'
         config:
           $ref: '#/components/schemas/ConverseConfig'
           description: The config that overrides the default config of the agent for that converse.
+          nullable: true
         agent_id:
           type: string
           description: >-
             The ID of the agent that should be used for the converse. If both agent_id and conversation_id
             aren't provided - the new agent is created.
+          nullable: true
         conversation_id:
           type: string
           description: >-
             The ID of the present conversation to use. If it's not provided - a new conversation will be
             created.
+          nullable: true
         stream:
           type: boolean
           description: >-
             Determines the response type of the converse. Response is the Server-Sent Events if stream is set
             to true.
           default: false
+          nullable: true
         generate_citations:
           type: boolean
           description: >-
             Determines whether the response should include citations. When enabled, the agent will generate
             citations for factual statements.
           default: false
+          nullable: true
+        secret_ids:
+          type: array
+          description: >-
+            Array of secret ID's to be included in the context. The secret value will be appended to the
+            prompt but not stored in conversation history.
+          items:
+            type: string
+          nullable: true
+        text:
+          type: object
+          description: |
+            Contains the format property used to specify the structured output schema.
+            Structured output is currently only supported by the default agent model, magpie-1.1.
+          nullable: true
+          properties:
+            format:
+              type: object
+              description: |
+                The converse response will be a JSON string object, that adheres to the provided JSON schema.
+
+                ```json
+                  const exampleJsonSchema = {
+                    $id: "movie_info",
+                    title: "movie_info",
+                    type: "object",
+                    properties: {
+                      name: {
+                        type: "string",
+                        description: "The name of the movie",
+                      },
+                      director: {
+                        type: "string",
+                        description: "The director of the movie",
+                      },
+                      release_year: {
+                        type: "number",
+                        description: "The year the movie was released",
+                      },
+                    },
+                    required: ["name", "director", "release_year"],
+                    additionalProperties: false,
+                  };
+
+                  const response = await datagrid.converse({
+                    prompt: "What movie won best picture at the 2001 oscars?",
+                    text: { format: exampleJsonSchema },
+                  });
+
+                  // Example response:
+                  "{ "name": "Gladiator", "director": "Ridley Scott", "release_year": 2000 }"
+                ```
     InputItem:
       type: object
       title: Input message
@@ -767,7 +1784,7 @@ components:
             - user
         content:
           description: |
-            Text or file input to the agent.
+            Text, file or secret input to the agent.
           oneOf:
             - type: string
               title: Text input
@@ -788,6 +1805,7 @@ components:
       oneOf:
         - $ref: '#/components/schemas/InputText'
         - $ref: '#/components/schemas/InputFile'
+        - $ref: '#/components/schemas/InputSecret'
     InputText:
       type: object
       title: Text input
@@ -828,6 +1846,26 @@ components:
       required:
         - type
         - file_id
+    InputSecret:
+      type: object
+      title: Secret input
+      description: |
+        A secret input to the model.
+      properties:
+        type:
+          type: string
+          description: |
+            The type of the input item. Always `input_secret`.
+          enum:
+            - input_secret
+          x-stainless-const: true
+        secret_id:
+          type: string
+          description: |
+            The ID of the secret to be sent to the model.
+      required:
+        - type
+        - secret_id
     ConverseAllResponses:
       oneOf:
         - $ref: '#/components/schemas/ConverseResponse'
@@ -862,6 +1900,8 @@ components:
           description: The ID of the agent conversation.
         citations:
           $ref: '#/components/schemas/Citations'
+        credits:
+          $ref: '#/components/schemas/CreditsConverseResponse'
     Citations:
       type: array
       description: >-
@@ -910,10 +1950,13 @@ components:
         system_prompt:
           type: string
           description: Directs your AI Agent's operational behavior.
+          nullable: true
         agent_model:
           $ref: '#/components/schemas/AgentModel'
+          nullable: true
         llm_model:
           $ref: '#/components/schemas/LlmModel'
+          nullable: true
         knowledge_ids:
           type: array
           nullable: true
@@ -925,7 +1968,8 @@ components:
         agent_tools:
           description: >
             Array of the agent tools to enable. If not provided - default tools of the agent are used. If
-            empty list provided - none of the tools are used. If null provided - all tools are used.
+            empty list provided - none of the tools are used. If null provided - all tools are used. When
+            connection_id is set for a tool, it will use that specific connection instead of the default one.
 
 
             Knowledge management tools:
@@ -984,15 +2028,33 @@ components:
           type: array
           nullable: true
           items:
+            oneOf:
+              - $ref: '#/components/schemas/AgentTool'
+              - $ref: '#/components/schemas/AgentToolItem'
+        disabled_agent_tools:
+          description: >
+            Array of the agent tools to disable. Disabling is performed after the 'agent_tools' rules are
+            applied.
+
+            For example, agent_tools: null and disabled_agent_tools: [data_analysis] will enable everything
+            but the data_analysis tool.
+
+            If nothing or [] is provided, nothing is disabled and therefore only the agent_tools setting is
+            relevant.
+          type: array
+          items:
             $ref: '#/components/schemas/AgentTool'
+          nullable: true
         custom_prompt:
           type: string
           description: Use custom prompt to instruct the style and formatting of the agent's response
+          nullable: true
     ConverseEvent:
       description: Events that are sent via SSE. Not available when stream isn't defined in request body or set to false
       oneOf:
         - $ref: '#/components/schemas/ConverseStatusEvent'
         - $ref: '#/components/schemas/ConverseContentMessageDeltaEvent'
+        - $ref: '#/components/schemas/ConverseToolCallDeltaEvent'
     ConverseStatusEvent:
       type: object
       required:
@@ -1039,6 +2101,19 @@ components:
           description: Type of the event which is always delta
         data:
           $ref: '#/components/schemas/ConverseContentMessageDelta'
+    ConverseToolCallDeltaEvent:
+      type: object
+      required:
+        - event
+        - data
+      properties:
+        event:
+          type: string
+          enum:
+            - tool_call
+          description: Type of the event which is always tool_call
+        data:
+          $ref: '#/components/schemas/ConverseToolCallDelta'
     ConverseContentMessageDelta:
       type: object
       required:
@@ -1057,6 +2132,89 @@ components:
             text:
               type: string
           description: Delta of the response message produced by the agent.
+    ConverseToolCallDelta:
+      type: object
+      required:
+        - type
+        - id
+        - status
+        - tool
+      properties:
+        type:
+          type: string
+          enum:
+            - tool_call
+        id:
+          type: string
+          description: The ID of the tool call.
+        status:
+          type: string
+          enum:
+            - in_progress
+            - completed
+            - failed
+        tool:
+          type: object
+          required:
+            - name
+            - label
+            - description
+          properties:
+            name:
+              type: string
+              description: The name of the tool that was called.
+            label:
+              type: string
+              description: The label of the tool that was called.
+            description:
+              type: string
+              description: The description of the tool that was called.
+            icon:
+              type: string
+              description: The icon of the tool that was called.
+        output:
+          type: string
+          description: The output of the tool call.
+    CreditsResponse:
+      type: object
+      required:
+        - remaining
+        - consumed
+        - total
+      properties:
+        remaining:
+          type: number
+          description: The number of unused credits remaining for the current billing period.
+        consumed:
+          type: number
+          description: The number of credits consumed in the current billing period.
+        total:
+          type: number
+          description: The initial total number of credits for the current billing period.
+    CreditsConverseResponse:
+      type: object
+      required:
+        - consumed_for_message
+        - consumed_for_conversation
+      properties:
+        consumed_for_message:
+          type: number
+          description: The number of credits consumed during this specific converse call for the message.
+        consumed_for_conversation:
+          type: number
+          description: The number of credits consumed for the entire conversation.
+    CreditsKnowledgeResponse:
+      type: object
+      required:
+        - consumed_for_learning
+        - consumed_for_knowledge
+      properties:
+        consumed_for_learning:
+          type: number
+          description: The number of credits consumed whilst learning the knowledge.
+        consumed_for_knowledge:
+          type: number
+          description: The total number of credits consumed for all learning on the knowledge including updates.
     DatagridFile:
       type: object
       description: The `File` object represents a document that has been uploaded to Datagrid.
@@ -1086,6 +2244,182 @@ components:
         media_type:
           type: string
           description: The media type of the file.
+    IFrameEventType:
+      type: string
+      enum:
+        - datagrid-api/error
+        - datagrid-api/connection-created
+        - datagrid-api/connection-updated
+        - datagrid-api/content-loaded
+        - datagrid-api/resize
+        - datagrid-api/knowledge-created
+    ErrorPayload:
+      type: object
+      required:
+        - message
+        - error
+      properties:
+        message:
+          type: string
+          description: Error message
+        error:
+          type: object
+          nullable: true
+          description: Error object
+    KnowledgeCreatedPayload:
+      type: object
+      required:
+        - knowledge_id
+      properties:
+        knowledge_id:
+          type: string
+          description: The ID of the knowledge that was created
+    ConnectionPayload:
+      type: object
+      description: >-
+        The `connection` object represents an authenticated connection to a third-party service (like Google
+        Drive, Hubspot, Dropbox, etc.) that can be managed through the API.
+      required:
+        - object
+        - id
+        - name
+        - teamspace_id
+        - connector_id
+        - created_at
+        - updated_at
+      properties:
+        object:
+          type: string
+          enum:
+            - connection
+          description: The object type, which is always `connection`.
+        id:
+          type: string
+          description: The connection identifier, which can be referenced in the API endpoints.
+        name:
+          type: string
+          description: The name of the connection.
+        teamspace_id:
+          type: string
+          description: The teamspace ID that owns this connection.
+        connector_id:
+          type: string
+          description: The connector ID of the third-party service this connection authenticates with.
+        valid:
+          type: boolean
+          description: Whether the connection authentication is valid.
+        value:
+          type: string
+          description: The authentication value of the connection.
+        created_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the connection was created.
+        updated_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the connection was last updated.
+    ResizePayload:
+      type: object
+      required:
+        - height
+        - width
+      properties:
+        height:
+          type: number
+          description: Height of the iframe
+        width:
+          type: number
+          description: Width of the iframe
+    ErrorIFrameEvent:
+      type: object
+      description: Event emitted when an error occurs in the iframe
+      required:
+        - type
+        - payload
+      properties:
+        type:
+          type: string
+          enum:
+            - datagrid-api/error
+        payload:
+          $ref: '#/components/schemas/ErrorPayload'
+    ConnectionCreatedIFrameEvent:
+      type: object
+      description: Event emitted when a new connection is successfully created
+      required:
+        - type
+        - payload
+      properties:
+        type:
+          type: string
+          enum:
+            - datagrid-api/connection-created
+        payload:
+          $ref: '#/components/schemas/ConnectionPayload'
+    ConnectionUpdatedIFrameEvent:
+      type: object
+      description: Event emitted when an existing connection is successfully updated
+      required:
+        - type
+        - payload
+      properties:
+        type:
+          type: string
+          enum:
+            - datagrid-api/connection-updated
+        payload:
+          $ref: '#/components/schemas/ConnectionPayload'
+    ContentLoadedIFrameEvent:
+      type: object
+      description: Event emitted when the iframe content has finished loading
+      required:
+        - type
+        - payload
+      properties:
+        type:
+          type: string
+          enum:
+            - datagrid-api/content-loaded
+        payload:
+          type: object
+          description: No payload for content loaded event
+    ResizeIFrameEvent:
+      type: object
+      description: Event emitted when the iframe needs to be resized
+      required:
+        - type
+        - payload
+      properties:
+        type:
+          type: string
+          enum:
+            - datagrid-api/resize
+        payload:
+          $ref: '#/components/schemas/ResizePayload'
+    KnowledgeCreatedIFrameEvent:
+      type: object
+      description: Event emitted when a new knowledge is successfully created
+      required:
+        - type
+        - payload
+      properties:
+        type:
+          type: string
+          enum:
+            - datagrid-api/knowledge-created
+        payload:
+          $ref: '#/components/schemas/KnowledgeCreatedPayload'
+    IFrameEvent:
+      type: object
+      description: Union type of all possible iframe events
+      oneOf:
+        - $ref: '#/components/schemas/ErrorIFrameEvent'
+        - $ref: '#/components/schemas/ConnectionCreatedIFrameEvent'
+        - $ref: '#/components/schemas/ConnectionUpdatedIFrameEvent'
+        - $ref: '#/components/schemas/ContentLoadedIFrameEvent'
+        - $ref: '#/components/schemas/ResizeIFrameEvent'
+        - $ref: '#/components/schemas/KnowledgeCreatedIFrameEvent'
     Knowledge:
       type: object
       description: The `knowledge` object represents knowledge that an agent may leverage to respond.
@@ -1112,6 +2446,10 @@ components:
           type: string
           format: date-time
           description: The ISO string for when the knowledge was created.
+        updated_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the knowledge was last updated.
         status:
           $ref: '#/components/schemas/KnowledgeStatus'
         row_counts:
@@ -1131,6 +2469,8 @@ components:
             failed:
               type: number
               description: The number of rows that failed to be processed for learning.
+        credits:
+          $ref: '#/components/schemas/CreditsKnowledgeResponse'
     KnowledgeStatus:
       type: string
       enum:
@@ -1143,6 +2483,72 @@ components:
         `partial` indicates that the knowledge is partially learned. The agent may use some aspects of it when
         responding. `ready` indicates that the knowledge is fully learned and will be completely utilized in
         responses.
+    UserMemory:
+      type: object
+      required:
+        - id
+        - object
+        - updated_at
+        - created_at
+        - user_prompt
+        - context
+        - agent_id
+        - user_id
+        - memory
+      properties:
+        object:
+          type: string
+          enum:
+            - user_memory
+          description: The object type, which is always `user_memory`.
+        id:
+          type: string
+          description: The ID of the user memory.
+        updated_at:
+          type: string
+          description: The updated at of the user memory.
+        created_at:
+          type: string
+          description: The created at of the user memory.
+        user_prompt:
+          type: string
+          description: The user prompt of the user memory.
+        context:
+          type: array
+          items:
+            type: string
+          description: The context of the user memory.
+        agent_id:
+          type: string
+          description: The agent ID of the user memory.
+        user_id:
+          type: string
+          description: The user ID of the user memory.
+        memory:
+          type: array
+          items:
+            type: string
+          description: The memory of the user memory.
+    CreateUserMemoryRequest:
+      type: object
+      required:
+        - agent_id
+        - memory
+      properties:
+        agent_id:
+          type: string
+          description: The agent ID of the user memory.
+        user_prompt:
+          type: string
+          description: The user prompt of the user memory.
+          nullable: true
+        memory:
+          type: string
+          description: The memory of the user memory.
+        context:
+          type: string
+          description: The context of the user memory.
+          nullable: true
     SearchResult:
       type: object
       required:
@@ -1211,6 +2617,54 @@ components:
         resource:
           description: The resource that matched the search query.
           $ref: '#/components/schemas/SearchResultResource'
+    Secret:
+      type: object
+      description: The `Secret` object represents a securely stored secret that can be referenced in converse API calls.
+      required:
+        - object
+        - id
+        - name
+        - created_at
+      properties:
+        object:
+          type: string
+          enum:
+            - secret
+          description: The object type, which is always `secret`.
+        id:
+          type: string
+          description: The secret identifier, which can be referenced in the converse API.
+        created_at:
+          type: string
+          description: The date and time the secret was created
+        name:
+          type: string
+          description: The name of the secret
+    Teamspace:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          description: The name of the teamspace
+        access:
+          type: string
+          enum:
+            - open
+            - closed
+          description: >
+            Open teamspaces allow all organization members to join without admin approval. Access for users
+            who join this way is limited to conversations with agents in this teamspace. 
+
+
+            Closed teamspaces require admin approval to join.
+        created_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the teamspace was created.
     KnowledgeMetadata:
       type: object
       description: Represents metadata for a knowledge object
@@ -1315,15 +2769,20 @@ components:
         page:
           type: object
           required:
-            - pageNumber
+            - page_number
             - url
+            - pageNumber
           properties:
-            pageNumber:
+            page_number:
               type: number
               description: The page number of the attachment.
             url:
               type: string
               description: The url of the blob of the page.
+            pageNumber:
+              type: number
+              description: DEPRECATED use page_number instead.
+              deprecated: true
         source:
           oneOf:
             - $ref: '#/components/schemas/MessageMetadata'
@@ -1426,3 +2885,56 @@ components:
         url:
           type: string
           description: The url of the navigation item.
+  parameters:
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+      required: false
+      description: The limit on the number of objects to return, ranging between 1 and 100.
+    after:
+      name: after
+      in: query
+      schema:
+        type: string
+      required: false
+      description: >-
+        A cursor to use in pagination. `after` is an object ID that defines your place in the list. For
+        example, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent
+        call can include `after=obj_foo` to fetch the next page of the list.
+    before:
+      name: before
+      in: query
+      schema:
+        type: string
+      required: false
+      description: >-
+        A cursor to use in pagination. `before` is an object ID that defines your place in the list. For
+        example, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent
+        call can include `before=obj_bar` to fetch the previous page of the list.
+    next:
+      name: next
+      in: query
+      schema:
+        type: string
+      required: false
+      description: >-
+        A cursor to use in pagination to continue a query from the previous request. This is automatically
+        added when the request has more results to fetch.
+    offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+        maximum: 100000
+      required: false
+      description: >-
+        A cursor to use in pagination. `offset` is an integer that defines your place in the list. For
+        example, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent
+        call can include `offset=100` to fetch the next page of the list.
