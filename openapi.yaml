@@ -361,7 +361,7 @@ paths:
                 prompt="string",
             )
             print(response.agent_id)
-  /credits:
+  /organization/credits:
     get:
       summary: Get credits
       description: Summarise the credits in your account for the current billing period.
@@ -374,7 +374,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreditsResponse'
+                $ref: '#/components/schemas/CreditsReport'
       x-codeSamples:
         - lang: JavaScript
           source: |-
@@ -384,9 +384,9 @@ paths:
               apiKey: 'My API Key',
             });
 
-            const creditsResponse = await client.credits.get();
+            const creditsReport = await client.organization.credits.get();
 
-            console.log(creditsResponse.consumed);
+            console.log(creditsReport.consumed);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -394,8 +394,8 @@ paths:
             client = Datagrid(
                 api_key="My API Key",
             )
-            credits_response = client.credits.get()
-            print(credits_response.consumed)
+            credits_report = client.organization.credits.get()
+            print(credits_report.consumed)
   /files:
     post:
       summary: Create files
@@ -633,6 +633,55 @@ paths:
             print(response)
             content = response.read()
             print(content)
+  /knowledge/connect:
+    post:
+      summary: Create knowledge from connection
+      operationId: Knowledge.createKnowledgeFromConnection
+      description: Create knowledge from connection which will be learned and leveraged by agents.
+      tags:
+        - Knowledge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - connection_id
+              properties:
+                connection_id:
+                  type: string
+                  description: The id of the connection to be used to create the knowledge.
+      responses:
+        '201':
+          description: Successfully created knowledge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectURLResponse'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const redirectURLResponse = await client.knowledge.connect({ connection_id: 'connection_id' });
+
+            console.log(redirectURLResponse.object);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            redirect_url_response = client.knowledge.connect(
+                connection_id="connection_id",
+            )
+            print(redirect_url_response.object)
   /knowledge:
     post:
       summary: Create knowledge
@@ -651,10 +700,6 @@ paths:
                   type: string
                   description: The name of the knowledge.
                   nullable: true
-                connection_id:
-                  type: string
-                  description: The id of the connection to be used to create the knowledge.
-                  nullable: true
                 files:
                   type: array
                   items:
@@ -670,9 +715,7 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/Knowledge'
-                  - $ref: '#/components/schemas/RedirectURLResponse'
+                $ref: '#/components/schemas/Knowledge'
       x-codeSamples:
         - lang: JavaScript
           source: |-
@@ -684,7 +727,7 @@ paths:
 
             const knowledge = await client.knowledge.create();
 
-            console.log(knowledge);
+            console.log(knowledge.id);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -693,7 +736,7 @@ paths:
                 api_key="My API Key",
             )
             knowledge = client.knowledge.create()
-            print(knowledge)
+            print(knowledge.id)
     get:
       summary: List knowledge
       operationId: Knowledge.listKnowledge
@@ -1728,39 +1771,46 @@ components:
           properties:
             format:
               type: object
-              description: |
+              description: >
                 The converse response will be a JSON string object, that adheres to the provided JSON schema.
 
-                ```json
-                  const exampleJsonSchema = {
-                    $id: "movie_info",
-                    title: "movie_info",
-                    type: "object",
-                    properties: {
-                      name: {
-                        type: "string",
-                        description: "The name of the movie",
-                      },
-                      director: {
-                        type: "string",
-                        description: "The director of the movie",
-                      },
-                      release_year: {
-                        type: "number",
-                        description: "The year the movie was released",
-                      },
+
+                ```javascript
+
+                const exampleJsonSchema = {
+                  $id: "movie_info",
+                  title: "movie_info",
+                  type: "object",
+                  properties: {
+                    name: {
+                      type: "string",
+                      description: "The name of the movie",
                     },
-                    required: ["name", "director", "release_year"],
-                    additionalProperties: false,
-                  };
+                    director: {
+                      type: "string",
+                      description: "The director of the movie",
+                    },
+                    release_year: {
+                      type: "number",
+                      description: "The year the movie was released",
+                    },
+                  },
+                  required: ["name", "director", "release_year"],
+                  additionalProperties: false,
+                };
 
-                  const response = await datagrid.converse({
-                    prompt: "What movie won best picture at the 2001 oscars?",
-                    text: { format: exampleJsonSchema },
-                  });
 
-                  // Example response:
-                  "{ "name": "Gladiator", "director": "Ridley Scott", "release_year": 2000 }"
+                const response = await datagrid.converse({
+                  prompt: "What movie won best picture at the 2001 oscars?",
+                  text: { format: exampleJsonSchema },
+                });
+
+
+                // Example response: "{ "name": "Gladiator", "director": "Ridley Scott", "release_year": 2000
+                }"
+
+                const parsedResponse = JSON.parse(response.content[0].text);
+
                 ```
     InputItem:
       type: object
@@ -1901,7 +1951,7 @@ components:
         citations:
           $ref: '#/components/schemas/Citations'
         credits:
-          $ref: '#/components/schemas/CreditsConverseResponse'
+          $ref: '#/components/schemas/ConverseCredits'
     Citations:
       type: array
       description: >-
@@ -2175,7 +2225,7 @@ components:
         output:
           type: string
           description: The output of the tool call.
-    CreditsResponse:
+    CreditsReport:
       type: object
       required:
         - remaining
@@ -2191,30 +2241,22 @@ components:
         total:
           type: number
           description: The initial total number of credits for the current billing period.
-    CreditsConverseResponse:
+    ConverseCredits:
       type: object
       required:
-        - consumed_for_message
-        - consumed_for_conversation
+        - consumed
       properties:
-        consumed_for_message:
+        consumed:
           type: number
-          description: The number of credits consumed during this specific converse call for the message.
-        consumed_for_conversation:
-          type: number
-          description: The number of credits consumed for the entire conversation.
-    CreditsKnowledgeResponse:
+          description: The number of credits consumed by the converse call.
+    KnowledgeCredits:
       type: object
       required:
-        - consumed_for_learning
-        - consumed_for_knowledge
+        - consumed
       properties:
-        consumed_for_learning:
+        consumed:
           type: number
-          description: The number of credits consumed whilst learning the knowledge.
-        consumed_for_knowledge:
-          type: number
-          description: The total number of credits consumed for all learning on the knowledge including updates.
+          description: The number of credits consumed by the knowledge.
     DatagridFile:
       type: object
       description: The `File` object represents a document that has been uploaded to Datagrid.
@@ -2470,7 +2512,7 @@ components:
               type: number
               description: The number of rows that failed to be processed for learning.
         credits:
-          $ref: '#/components/schemas/CreditsKnowledgeResponse'
+          $ref: '#/components/schemas/KnowledgeCredits'
     KnowledgeStatus:
       type: string
       enum:
