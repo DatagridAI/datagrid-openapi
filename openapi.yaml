@@ -8,6 +8,224 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /agents:
+    get:
+      summary: List agents
+      operationId: ListAgents
+      description: List all agents for the authenticated organization
+      tags:
+        - Agents
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const agent of client.agents.list()) {
+              console.log(agent.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.agents.list()
+            page = page.data[0]
+            print(page.id)
+    post:
+      summary: Create agent
+      operationId: CreateAgent
+      description: Create a new agent
+      tags:
+        - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '201':
+          description: Created agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const agent = await client.agents.create({ name: 'name' });
+
+            console.log(agent.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            agent = client.agents.create(
+                name="name",
+            )
+            print(agent.id)
+  /agents/{agent_id}:
+    get:
+      summary: Retrieve agent
+      operationId: RetrieveAgent
+      description: Get details of a specific agent
+      tags:
+        - Agents
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          description: The ID of the agent to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          description: Agent not found
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const agent = await client.agents.retrieve('agent_id');
+
+            console.log(agent.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            agent = client.agents.retrieve(
+                "agent_id",
+            )
+            print(agent.id)
+    patch:
+      summary: Update agent
+      operationId: UpdateAgent
+      description: Update an agent configuration
+      tags:
+        - Agents
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          description: The ID of the agent to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAgentRequest'
+      responses:
+        '200':
+          description: Updated agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          description: Agent not found
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const agent = await client.agents.update('agent_id');
+
+            console.log(agent.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            agent = client.agents.update(
+                agent_id="agent_id",
+            )
+            print(agent.id)
+    delete:
+      summary: Delete agent
+      operationId: DeleteAgent
+      description: Delete an agent
+      tags:
+        - Agents
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          description: The ID of the agent to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Agent deleted successfully
+        '404':
+          description: Agent not found
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.agents.delete('agent_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.agents.delete(
+                "agent_id",
+            )
   /connections:
     post:
       summary: Create connection
@@ -47,7 +265,7 @@ paths:
 
             const redirectURLResponse = await client.connections.create({ connector_id: 'connector_id' });
 
-            console.log(redirectURLResponse.object);
+            console.log(redirectURLResponse.redirect_url);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -58,7 +276,7 @@ paths:
             redirect_url_response = client.connections.create(
                 connector_id="connector_id",
             )
-            print(redirect_url_response.object)
+            print(redirect_url_response.redirect_url)
     get:
       summary: List connections
       operationId: Connection.listConnections
@@ -349,7 +567,7 @@ paths:
 
             const response = await client.converse({ prompt: 'string' });
 
-            console.log(response.agent_id);
+            console.log(response.content);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -360,7 +578,7 @@ paths:
             response = client.converse(
                 prompt="string",
             )
-            print(response.agent_id)
+            print(response.content)
   /organization/credits:
     get:
       summary: Get credits
@@ -670,7 +888,7 @@ paths:
 
             const redirectURLResponse = await client.knowledge.connect({ connection_id: 'connection_id' });
 
-            console.log(redirectURLResponse.object);
+            console.log(redirectURLResponse.redirect_url);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -681,7 +899,7 @@ paths:
             redirect_url_response = client.knowledge.connect(
                 connection_id="connection_id",
             )
-            print(redirect_url_response.object)
+            print(redirect_url_response.redirect_url)
   /knowledge:
     post:
       summary: Create knowledge
@@ -1070,6 +1288,147 @@ paths:
             client.memory.user.delete(
                 "user_memory_id",
             )
+  /organization/users:
+    get:
+      summary: List users
+      operationId: Users.listOrganizationUsers
+      description: Retrieve a list of users in the specified organization.
+      tags:
+        - Users
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          required: false
+          description: Search term to filter users by name or email
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of users in the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOrganizationUsers'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const organizationUser of client.organization.users.list()) {
+              console.log(organizationUser.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.organization.users.list()
+            page = page.data[0]
+            print(page.id)
+  /organization/users/{user_id}:
+    get:
+      summary: Retrieve user
+      operationId: Users.getOrganizationUser
+      description: Retrieve details of a specific user in the organization.
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUser'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const organizationUser = await client.organization.users.retrieve('user_id');
+
+            console.log(organizationUser.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            organization_user = client.organization.users.retrieve(
+                "user_id",
+            )
+            print(organization_user.id)
+    patch:
+      summary: Update user
+      operationId: Users.updateOrganizationUser
+      description: Update user permissions in the organization.
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationUser'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUser'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const organizationUser = await client.organization.users.update('user_id', { role: 'admin' });
+
+            console.log(organizationUser.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            organization_user = client.organization.users.update(
+                user_id="user_id",
+                role="admin",
+            )
+            print(organization_user.id)
   /search:
     get:
       summary: Search
@@ -1310,6 +1669,423 @@ paths:
             client.secrets.delete(
                 "secret_id",
             )
+  /organization/teamspaces/{teamspace_id}/invites:
+    get:
+      summary: List teamspace invites
+      operationId: Invite.listTeamspaceInvites
+      description: List all pending invites for a teamspace.
+      tags:
+        - Teamspace Invites
+      parameters:
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of invites for the teamspace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTeamspaceInvites'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const teamspaceInvite of client.organization.teamspaces.invites.list('teamspace_id')) {
+              console.log(teamspaceInvite.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.organization.teamspaces.invites.list(
+                teamspace_id="teamspace_id",
+            )
+            page = page.data[0]
+            print(page.id)
+    post:
+      summary: Invite user to a teamspace
+      operationId: Invite.inviteUserToTeamspace
+      description: >-
+        Invite a user to join the teamspace. This will send an invitation email. If the user already exists,
+        the invite will be automatically accepted.
+      tags:
+        - Teamspace Invites
+      parameters:
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteUserToTeamspaceRequest'
+      responses:
+        '201':
+          description: User invited successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamspaceInvite'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const teamspaceInvite = await client.organization.teamspaces.invites.create('teamspace_id', {
+              email: 'dev@stainless.com',
+            });
+
+            console.log(teamspaceInvite.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            teamspace_invite = client.organization.teamspaces.invites.create(
+                teamspace_id="teamspace_id",
+                email="dev@stainless.com",
+            )
+            print(teamspace_invite.id)
+  /organization/teamspaces/{teamspace_id}/invites/{invite_id}:
+    get:
+      summary: Retrieve teamspace invite
+      operationId: Invite.getTeamspaceInvite
+      description: Get a pending invite for in a teamspace.
+      tags:
+        - Teamspace Invites
+      parameters:
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+        - name: invite_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the invite
+      responses:
+        '200':
+          description: Invite for the user in the teamspace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamspaceInvite'
+      x-codeSamples:
+        - lang: JavaScript
+          source: >-
+            import Datagrid from 'datagrid-ai';
+
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+
+            const teamspaceInvite = await client.organization.teamspaces.invites.retrieve('teamspace_id',
+            'invite_id');
+
+
+            console.log(teamspaceInvite.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            teamspace_invite = client.organization.teamspaces.invites.retrieve(
+                invite_id="invite_id",
+                teamspace_id="teamspace_id",
+            )
+            print(teamspace_invite.id)
+    delete:
+      summary: Delete teamspace invite
+      operationId: Invite.deleteTeamspaceInvite
+      description: Delete a pending invite for a user in a teamspace.
+      tags:
+        - Teamspace Invites
+      parameters:
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+        - name: invite_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the invite
+      responses:
+        '204':
+          description: Invite deleted successfully
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.organization.teamspaces.invites.delete('teamspace_id', 'invite_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.organization.teamspaces.invites.delete(
+                invite_id="invite_id",
+                teamspace_id="teamspace_id",
+            )
+  /organization/teamspaces/{teamspace_id}/users:
+    get:
+      summary: List teamspace users
+      operationId: Users.listTeamspaceUsers
+      description: Retrieve a list of users in the specified teamspace.
+      tags:
+        - Teamspace Users
+      parameters:
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+        - name: search
+          in: query
+          schema:
+            type: string
+          required: false
+          description: Search term to filter users by name or email
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of users in the teamspace
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTeamspaceUsers'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const teamspaceUser of client.organization.teamspaces.users.list('teamspace_id')) {
+              console.log(teamspaceUser.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.organization.teamspaces.users.list(
+                teamspace_id="teamspace_id",
+            )
+            page = page.data[0]
+            print(page.id)
+  /organization/teamspaces/{teamspace_id}/users/{user_id}:
+    get:
+      summary: Retrieve teamspace user
+      operationId: Users.getTeamspaceUser
+      description: Retrieve details of a specific user in the teamspace.
+      tags:
+        - Teamspace Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamspaceUser'
+      x-codeSamples:
+        - lang: JavaScript
+          source: >-
+            import Datagrid from 'datagrid-ai';
+
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+
+            const teamspaceUser = await client.organization.teamspaces.users.retrieve('teamspace_id',
+            'user_id');
+
+
+            console.log(teamspaceUser.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            teamspace_user = client.organization.teamspaces.users.retrieve(
+                user_id="user_id",
+                teamspace_id="teamspace_id",
+            )
+            print(teamspace_user.id)
+    delete:
+      summary: Delete teamspace user
+      operationId: Users.revokeTeamspacePermissions
+      description: Revoke a user's permissions from the teamspace.
+      tags:
+        - Teamspace Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+      responses:
+        '204':
+          description: User revoked successfully
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.organization.teamspaces.users.delete('teamspace_id', 'user_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.organization.teamspaces.users.delete(
+                user_id="user_id",
+                teamspace_id="teamspace_id",
+            )
+    patch:
+      summary: Update teamspace user
+      operationId: Users.updateTeamspaceUser
+      description: Update user permissions in the teamspace.
+      tags:
+        - Teamspace Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+        - name: teamspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the teamspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeamspaceUser'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamspaceUser'
+      x-codeSamples:
+        - lang: JavaScript
+          source: >-
+            import Datagrid from 'datagrid-ai';
+
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+
+            const teamspaceUser = await client.organization.teamspaces.users.update('teamspace_id', 'user_id',
+            {
+              role: 'admin',
+            });
+
+
+            console.log(teamspaceUser.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            teamspace_user = client.organization.teamspaces.users.update(
+                user_id="user_id",
+                teamspace_id="teamspace_id",
+                role="admin",
+            )
+            print(teamspace_user.id)
   /organization/teamspaces/{teamspace_id}:
     get:
       summary: Retrieve teamspace
@@ -1562,6 +2338,85 @@ components:
         redirect_url:
           type: string
           description: The redirect url for a connection.
+    Agent:
+      allOf:
+        - $ref: '#/components/schemas/ConverseConfig'
+        - type: object
+          required:
+            - object
+            - id
+            - name
+            - created_at
+          properties:
+            object:
+              type: string
+              enum:
+                - agent
+              description: The object type, always 'agent'
+            id:
+              type: string
+              description: Unique identifier for the agent
+            name:
+              type: string
+              description: The name of the agent
+            description:
+              type: string
+              nullable: true
+              description: Description of the agent
+            created_at:
+              type: string
+              format: date-time
+              description: The ISO string for when the agent was created
+    AgentListResponse:
+      type: object
+      required:
+        - object
+        - data
+        - has_more
+      properties:
+        object:
+          type: string
+          enum:
+            - list
+          description: The object type, always 'list'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Agent'
+          description: Array of agent objects
+        has_more:
+          type: boolean
+          description: Whether there are more results available
+    CreateAgentRequest:
+      allOf:
+        - $ref: '#/components/schemas/ConverseConfig'
+        - type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: The name of the agent
+              maxLength: 255
+            description:
+              type: string
+              description: Description of the agent
+              maxLength: 1000
+              nullable: true
+    UpdateAgentRequest:
+      allOf:
+        - $ref: '#/components/schemas/ConverseConfig'
+        - type: object
+          properties:
+            name:
+              type: string
+              description: The name of the agent
+              maxLength: 255
+            description:
+              type: string
+              description: Description of the agent
+              maxLength: 1000
+              nullable: true
     Connection:
       type: object
       description: >-
@@ -1755,6 +2610,19 @@ components:
             citations for factual statements.
           default: false
           nullable: true
+        auto_approve_actions:
+          description: >-
+            Auto-approve actions (skip halting for human approval). If boolean true: all tools auto-approve.
+            If object: per-tool toggle by toolId (true to skip halting forhuman approval).
+          nullable: true
+          oneOf:
+            - type: boolean
+              default: false
+              nullable: true
+            - type: object
+              additionalProperties:
+                type: boolean
+              nullable: true
         secret_ids:
           type: array
           description: >-
@@ -2099,6 +2967,12 @@ components:
         custom_prompt:
           type: string
           description: Use custom prompt to instruct the style and formatting of the agent's response
+          nullable: true
+        planning_prompt:
+          type: string
+          description: >-
+            Define the planning strategy your AI Agent should use when breaking down tasks and solving
+            problems
           nullable: true
     ConverseEvent:
       description: Events that are sent via SSE. Not available when stream isn't defined in request body or set to false
@@ -2592,6 +3466,94 @@ components:
           type: string
           description: The context of the user memory.
           nullable: true
+    OrganizationUserPermissions:
+      type: object
+      description: Represents a permission assigned to a user
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - owner
+            - admin
+            - member
+            - contributor
+            - collaborator
+          description: >
+            The role to assign to the user in the organization. Available roles:
+
+            - **owner**: Organization owner. Can manage organization settings, users and create new
+            teamspaces.
+
+            - **admin**: Organization administrator. Can manage organization settings, users and create new
+            teamspaces.
+
+            - **member**: Standard organization member. Can create new teamspaces.
+
+            - **contributor**: Limited access. Can read shared resources. Cannot create new teamspaces.
+
+            - **collaborator**: Limited access. Cannot read shared resources. Cannot create new teamspaces.
+    OrganizationUser:
+      type: object
+      description: Represents a user in an organization
+      required:
+        - id
+        - email
+        - first_name
+        - last_name
+        - permissions
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the user
+        email:
+          type: string
+          format: email
+          description: The email address of the user
+        first_name:
+          type: string
+          description: The first name of the user
+        last_name:
+          type: string
+          description: The last name of the user
+        permissions:
+          $ref: '#/components/schemas/OrganizationUserPermissions'
+          description: The roles assigned to the user in the organization
+    ListOrganizationUsers:
+      type: object
+      description: Response containing a list of users in an organization
+      required:
+        - object
+        - data
+        - has_more
+      properties:
+        object:
+          type: string
+          enum:
+            - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationUser'
+          description: Array of users in the organization
+        has_more:
+          type: boolean
+          description: >-
+            Whether or not there are more elements available after this set. If false, this set comprises the
+            end of the list.
+    UpdateOrganizationUser:
+      type: object
+      description: Represents a user in an organization
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - admin
+            - member
+          description: 'The role to assign to the user in the organization. Available roles: admin, member'
     SearchResult:
       type: object
       required:
@@ -2683,6 +3645,215 @@ components:
         name:
           type: string
           description: The name of the secret
+    InviteUserToTeamspaceRequest:
+      type: object
+      description: Represents a user in a teamspace
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address of the user to invite
+        permissions:
+          type: object
+          nullable: true
+          description: The permissions to assign to the user in the teamspace
+          required:
+            - role
+          properties:
+            role:
+              type: string
+              enum:
+                - admin
+                - member
+                - agents-only
+                - agent-specific
+              description: >-
+                The role to assign to the user in the teamspace. Available roles: admin, member, agents-only,
+                agent-specific
+            agent_ids:
+              nullable: true
+              type: array
+              items:
+                type: string
+              description: The IDs of the agents that the user has access to, if the role is agent-specific
+    TeamspaceInvite:
+      type: object
+      description: Represents a invite for a user in a teamspace
+      required:
+        - email
+        - permissions
+        - status
+        - id
+      properties:
+        id:
+          type: string
+          description: The ID of the invite. Only present if the invite is pending.
+        email:
+          type: string
+          format: email
+          description: The email address of the user invited
+        permissions:
+          $ref: '#/components/schemas/TeamspaceInvitePermissions'
+        accepted_at:
+          type: string
+          nullable: true
+          format: date-time
+          description: The date and time the user accepted the invite. Only present if the invite is accepted.
+        status:
+          type: string
+          enum:
+            - pending
+            - accepted
+          description: Whether the user has accepted the invite
+    TeamspaceInvitePermissions:
+      type: object
+      description: Represents the permissions assigned to a user in a teamspace
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - admin
+            - member
+            - agents-only
+            - agent-specific
+          description: >-
+            The role to assign to the user in the teamspace. Available roles: admin, member, agents-only,
+            agent-specific
+        agent_ids:
+          nullable: true
+          type: array
+          items:
+            type: string
+          description: The IDs of the agents that the user has access to, if the role is agent-specific
+    ListTeamspaceInvites:
+      type: object
+      description: Response containing a list of invites in a teamspace
+      required:
+        - object
+        - data
+      properties:
+        object:
+          type: string
+          enum:
+            - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamspaceInvite'
+          description: An array containing the actual response elements.
+        has_more:
+          type: boolean
+          description: >-
+            Whether or not there are more elements available after this set. If false, this set comprises the
+            end of the list.
+    TeamspaceUserPermissions:
+      type: object
+      description: Represents a permission assigned to a user
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - owner
+            - admin
+            - member
+            - collaborator
+            - agents-only
+            - agent-specific
+          description: >
+            The role assigned to the user. Available roles:
+
+            - **owner**: Creator of the teamspace. Full control over the teamspace. Can manage all users,
+            settings, and resources.
+
+            - **admin**: Full control over the teamspace. Can manage all users, settings, and resources.
+
+            - **member**: Standard member access. Can view and interact with teamspace resources. Can invite
+            other members.
+
+            - **collaborator**: Read-only access with ability to comment and provide feedback.
+
+            - **agents-only**: Access limited to AI agent interactions within the teamspace.
+
+            - **agent-specific**: Limited access on teamspace level, can only access agents that are assigned
+            to the teamspace.
+        agent_ids:
+          type: array
+          nullable: true
+          items:
+            type: string
+          description: The agent IDs that the user has access to, if the role is agent-specific.
+    TeamspaceUser:
+      type: object
+      description: Represents a user in a teamspace
+      required:
+        - id
+        - email
+        - first_name
+        - last_name
+        - permissions
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the user
+        email:
+          type: string
+          format: email
+          description: The email address of the user
+        first_name:
+          type: string
+          description: The first name of the user
+        last_name:
+          type: string
+          description: The last name of the user
+        permissions:
+          $ref: '#/components/schemas/TeamspaceUserPermissions'
+          description: The permissions assigned to the user in the teamspace
+    ListTeamspaceUsers:
+      type: object
+      description: Response containing a list of users in a teamspace
+      required:
+        - object
+        - data
+      properties:
+        object:
+          type: string
+          enum:
+            - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamspaceUser'
+          description: An array containing the actual response elements.
+        has_more:
+          type: boolean
+          description: >-
+            Whether or not there are more elements available after this set. If false, this set comprises the
+            end of the list.
+    UpdateTeamspaceUser:
+      type: object
+      description: Represents a user in a teamspace
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - admin
+            - member
+            - agents-only
+            - agent-specific
+        agent_ids:
+          nullable: true
+          type: array
+          items:
+            type: string
+          description: The agent IDs that the user has access to, if the role is agent-specific.
     Teamspace:
       type: object
       required:
