@@ -77,7 +77,7 @@ paths:
               apiKey: 'My API Key',
             });
 
-            const agent = await client.agents.create({ name: 'name' });
+            const agent = await client.agents.create();
 
             console.log(agent.id);
         - lang: Python
@@ -87,9 +87,7 @@ paths:
             client = Datagrid(
                 api_key="My API Key",
             )
-            agent = client.agents.create(
-                name="name",
-            )
+            agent = client.agents.create()
             print(agent.id)
   /agents/{agent_id}:
     get:
@@ -536,6 +534,302 @@ paths:
             page = client.connectors.list()
             page = page.data[0]
             print(page.id)
+  /conversations:
+    get:
+      summary: List conversations
+      operationId: Conversations.listConversations
+      description: Returns the list of conversations.
+      tags:
+        - Conversations
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conversation'
+                    description: An array containing the actual response elements, paginated by any request parameters.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const conversation of client.conversations.list()) {
+              console.log(conversation.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.conversations.list()
+            page = page.data[0]
+            print(page.id)
+    post:
+      summary: Create conversation
+      operationId: Conversations.createConversation
+      description: Creates a new conversation.
+      tags:
+        - Conversations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+      responses:
+        '200':
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const conversation = await client.conversations.create();
+
+            console.log(conversation.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            conversation = client.conversations.create()
+            print(conversation.id)
+  /conversations/{conversation_id}:
+    get:
+      summary: Retrieve conversation
+      operationId: Conversations.retrieveConversation
+      description: Retrieves a conversation by id.
+      tags:
+        - Conversations
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the conversation to retrieve.
+      responses:
+        '200':
+          description: Retrieved conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const conversation = await client.conversations.retrieve('conversation_id');
+
+            console.log(conversation.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            conversation = client.conversations.retrieve(
+                "conversation_id",
+            )
+            print(conversation.id)
+    delete:
+      summary: Delete conversation
+      operationId: Conversations.deleteConversation
+      description: Delete conversation.
+      tags:
+        - Conversations
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the conversation to delete.
+      responses:
+        '200':
+          description: Successfully deleted conversation
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.conversations.delete('conversation_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.conversations.delete(
+                "conversation_id",
+            )
+  /conversations/{conversation_id}/messages:
+    get:
+      summary: List messages
+      operationId: Conversations.listMessages
+      description: Returns the list of messages in a conversation.
+      tags:
+        - Conversations
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the conversation to list messages for.
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConversationMessage'
+                    description: An array containing the actual response elements, paginated by any request parameters.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const message of client.conversations.messages.list('conversation_id')) {
+              console.log(message.id);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.conversations.messages.list(
+                conversation_id="conversation_id",
+            )
+            page = page.data[0]
+            print(page.id)
+  /conversations/{conversation_id}/messages/{message_id}:
+    get:
+      summary: Retrieve message
+      operationId: Conversations.retrieveMessage
+      description: Retrieves a message by id.
+      tags:
+        - Conversations
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: message_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the message to retrieve.
+      responses:
+        '200':
+          description: Retrieved message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationMessage'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const message = await client.conversations.messages.retrieve('conversation_id', 'message_id');
+
+            console.log(message.id);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            message = client.conversations.messages.retrieve(
+                message_id="message_id",
+                conversation_id="conversation_id",
+            )
+            print(message.id)
   /converse:
     post:
       summary: Converse
@@ -565,9 +859,9 @@ paths:
               apiKey: 'My API Key',
             });
 
-            const response = await client.converse({ prompt: 'string' });
+            const converseResponse = await client.converse({ prompt: 'string' });
 
-            console.log(response.content);
+            console.log(converseResponse.content);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -575,10 +869,10 @@ paths:
             client = Datagrid(
                 api_key="My API Key",
             )
-            response = client.converse(
+            converse_response = client.converse(
                 prompt="string",
             )
-            print(response.content)
+            print(converse_response.content)
   /organization/credits:
     get:
       summary: Get credits
@@ -913,6 +1207,8 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - files
               properties:
                 name:
                   type: string
@@ -923,7 +1219,7 @@ paths:
                   items:
                     type: string
                     format: binary
-                  nullable: true
+                  nullable: false
                   description: >-
                     The files to be uploaded and learned. Supported media types are `pdf`, `json`, `csv`,
                     `text`, `png`, `jpeg`, `excel`, `google sheets`.
@@ -943,7 +1239,7 @@ paths:
               apiKey: 'My API Key',
             });
 
-            const knowledge = await client.knowledge.create();
+            const knowledge = await client.knowledge.create({ files: [fs.createReadStream('path/to/file')] });
 
             console.log(knowledge.id);
         - lang: Python
@@ -953,7 +1249,9 @@ paths:
             client = Datagrid(
                 api_key="My API Key",
             )
-            knowledge = client.knowledge.create()
+            knowledge = client.knowledge.create(
+                files=[b"raw file contents"],
+            )
             print(knowledge.id)
     get:
       summary: List knowledge
@@ -2340,13 +2638,19 @@ components:
           description: The redirect url for a connection.
     Agent:
       allOf:
-        - $ref: '#/components/schemas/ConverseConfig'
         - type: object
           required:
             - object
             - id
             - name
             - created_at
+            - agent_model
+            - llm_model
+            - knowledge_ids
+            - tools
+            - system_prompt
+            - custom_prompt
+            - planning_prompt
           properties:
             object:
               type: string
@@ -2359,14 +2663,81 @@ components:
             name:
               type: string
               description: The name of the agent
-            description:
-              type: string
-              nullable: true
-              description: Description of the agent
             created_at:
               type: string
               format: date-time
               description: The ISO string for when the agent was created
+              nullable: false
+        - $ref: '#/components/schemas/AgentConfig'
+    AgentConfig:
+      type: object
+      properties:
+        agent_model:
+          $ref: '#/components/schemas/AgentModel'
+          nullable: false
+        llm_model:
+          $ref: '#/components/schemas/LlmModel'
+          nullable: false
+        knowledge_ids:
+          type: array
+          nullable: true
+          description: >-
+            Array of Knowledge IDs the agent should use during the converse. When ommited, all knowledge is
+            used.
+          items:
+            type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tool'
+          description: Tools that this agent can use.
+          nullable: false
+        system_prompt:
+          type: string
+          description: Directs your AI Agent's operational behavior.
+          nullable: true
+        custom_prompt:
+          type: string
+          description: Use custom prompt to instruct the style and formatting of the agent's response
+          nullable: true
+        planning_prompt:
+          type: string
+          description: >-
+            Define the planning strategy your AI Agent should use when breaking down tasks and solving
+            problems
+          nullable: true
+    InputAgentConfig:
+      allOf:
+        - $ref: '#/components/schemas/AgentConfig'
+        - type: object
+          properties:
+            tools:
+              $ref: '#/components/schemas/AgentTools'
+              nullable: true
+            disabled_tools:
+              $ref: '#/components/schemas/AgentTools'
+              description: >-
+                Array of the agent tools to disable. Disabling is performed after the 'agent_tools' rules are
+                applied. For example, agent_tools: null and disabled_tools: [data_analysis] will enable
+                everything but the data_analysis tool. If nothing or [] is provided, nothing is disabled and
+                therefore only the agent_tools setting is relevant.
+              nullable: true
+            llm_model:
+              $ref: '#/components/schemas/LlmModel'
+              nullable: true
+            agent_model:
+              $ref: '#/components/schemas/AgentModel'
+              nullable: true
+    CreateAgentRequest:
+      allOf:
+        - $ref: '#/components/schemas/InputAgentConfig'
+        - type: object
+          properties:
+            name:
+              type: string
+              description: The name of the agent
+              maxLength: 255
+              nullable: true
     AgentListResponse:
       type: object
       required:
@@ -2387,36 +2758,174 @@ components:
         has_more:
           type: boolean
           description: Whether there are more results available
-    CreateAgentRequest:
-      allOf:
-        - $ref: '#/components/schemas/ConverseConfig'
-        - type: object
-          required:
-            - name
-          properties:
-            name:
-              type: string
-              description: The name of the agent
-              maxLength: 255
-            description:
-              type: string
-              description: Description of the agent
-              maxLength: 1000
-              nullable: true
     UpdateAgentRequest:
       allOf:
-        - $ref: '#/components/schemas/ConverseConfig'
+        - $ref: '#/components/schemas/InputAgentConfig'
         - type: object
           properties:
             name:
               type: string
               description: The name of the agent
               maxLength: 255
-            description:
-              type: string
-              description: Description of the agent
-              maxLength: 1000
               nullable: true
+    AgentTools:
+      description: >
+        Array of the agent tools to enable. If not provided - default tools of the agent are used. If empty
+        list provided - none of the tools are used. If null provided - all tools are used. When connection_id
+        is set for a tool, it will use that specific connection instead of the default one.
+
+
+        Knowledge management tools:
+
+        - data_analysis: Answer statistical or analytical questions like "Show my quarterly revenue growth"
+
+        - semantic_search: Search knowledge through natural language queries.
+
+        - agent_memory: Agents can remember experiences, conversations and user preferences.
+
+        - schema_info: Helps the Agent understand column names and dataset purpose. Avoid disabling
+
+        - table_info: Allow the AI Agent to get information about datasets and schemas
+
+        - create_dataset: Agents respond with data tables
+
+
+        Actions:
+
+        - calendar: Allow the Agent to access and make changes to your Google Calendar
+
+        - schedule_recurring_message_tool: Eliminate busywork such as: "Send a summary of today's meetings at
+        5pm on workdays"
+
+
+        Data processing tools:
+
+        - data_classification: Agents handle queries like "Label these emails as high, medium, or low
+        priority"
+
+        - data_extraction: Helps the agent understand data from other tools. Avoid disabling
+
+        - image_detection: Extract information from images using AI
+
+        - pdf_extraction: Extraction of information from PDFs using AI
+
+
+        Enhanced response tools:
+
+        - connect_data: Agents provide buttons to import data in response to queries like "Connect Hubspot"
+
+        - download_data: Agents handle queries like "download the table as CSV"
+
+
+        Web tools:
+
+        - web_search: Agents search the internet, and provide links to their sources
+
+        - fetch_url: Fetch URL content
+
+        - company_prospect_researcher: Agents provide information about companies
+
+        - people_prospect_researcher: Agents provide information about people
+      type: array
+      nullable: true
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/ToolName'
+          - $ref: '#/components/schemas/Tool'
+    AgentModel:
+      type: string
+      enum:
+        - magpie-1.1
+        - magpie-1.1-flash
+        - magpie-1
+      default: magpie-1.1
+      description: >
+        The version of Datagrid's agent brain. 
+
+        - magpie-1.1 is the default and most powerful model. 
+
+        - magpie-1.1-flash is a faster model useful for RAG usecases, it currently only supports
+        semantic_search tool. Structured outputs are not supported with this model.
+      nullable: true
+    Tool:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          $ref: '#/components/schemas/ToolName'
+        connection_id:
+          type: string
+          description: The ID of the connection to use for the tool.
+          nullable: true
+    ToolName:
+      type: string
+      enum:
+        - data_analysis
+        - semantic_search
+        - agent_memory
+        - schema_info
+        - table_info
+        - create_dataset
+        - calendar
+        - email
+        - schedule_recurring_message_tool
+        - procore
+        - egnyte
+        - notion
+        - google_sheets
+        - slack
+        - microsoft_teams
+        - sharepoint
+        - drive
+        - fieldwire
+        - webbrowser
+        - pdf_manipulation
+        - pdf_generator
+        - acc
+        - docusign
+        - webflow
+        - hubspot
+        - nec
+        - github
+        - data_classification
+        - data_extraction
+        - image_detection
+        - attachment_extraction
+        - pdf_extraction
+        - connect_data
+        - download_data
+        - web_search
+        - fetch_url
+        - company_prospect_researcher
+        - people_prospect_researcher
+    LlmModel:
+      oneOf:
+        - $ref: '#/components/schemas/LlmModelEnum'
+        - type: string
+      default: gemini-2.5-flash
+      description: The LLM used to generate responses.
+    LlmModelEnum:
+      type: string
+      description: The LLM used to generate responses.
+      enum:
+        - gemini-2.5-pro
+        - gemini-2.5-pro-preview-05-06
+        - gemini-2.5-flash
+        - gemini-2.5-flash-preview-04-17
+        - gemini-2.5-flash-lite
+        - gpt-5
+        - gemini-2.0-flash-001
+        - gemini-2.0-flash
+        - gemini-1.5-pro-001
+        - gemini-1.5-pro-002
+        - gemini-1.5-flash-002
+        - gemini-1.5-flash-001
+        - chatgpt-4o-latest
+        - gpt-4o
+        - gpt-4
+        - gpt-4-turbo
+        - gpt-4o-mini
     Connection:
       type: object
       description: >-
@@ -2470,7 +2979,6 @@ components:
       required:
         - object
         - id
-        - applicationId
         - name
       properties:
         object:
@@ -2484,86 +2992,102 @@ components:
         name:
           type: string
           description: The display name of the connector.
-    AgentModel:
-      type: string
-      enum:
-        - magpie-1
-        - magpie-1.1
-        - magpie-1.1-flash
-      description: The version of Datagrid's agent brain.
-    AgentToolItem:
+    Conversation:
       type: object
+      description: The `conversation` object represents a conversation with an AI agent.
       required:
-        - name
+        - object
+        - id
+        - created_at
+        - updated_at
+      properties:
+        object:
+          type: string
+          enum:
+            - conversation
+          description: The object type, which is always `conversation`.
+        id:
+          type: string
+          description: The conversation identifier, which can be referenced in the API endpoints.
+        name:
+          type: string
+          description: The name of the conversation.
+        created_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the conversation was created.
+        updated_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the conversation was last updated.
+    ConversationMessage:
+      type: object
+      description: The `conversation.message` object represents a message in a conversation.
+      required:
+        - object
+        - id
+        - agent_id
+        - role
+        - content
+        - created_at
+        - conversation_id
+        - credits
+        - citations
+      properties:
+        object:
+          type: string
+          enum:
+            - conversation.message
+          description: The object type, which is always `conversation.message`.
+        id:
+          type: string
+          description: The message identifier.
+        agent_id:
+          type: string
+          description: The ID of the agent that sent or responded to the message.
+        role:
+          type: string
+          enum:
+            - user
+            - agent
+          description: The role of the message sender - either 'user' or 'agent'.
+        content:
+          type: array
+          description: Contents of the message.
+          items:
+            type: object
+            required:
+              - type
+              - text
+            properties:
+              type:
+                type: string
+                enum:
+                  - text
+                x-stainless-const: true
+              text:
+                type: string
+        created_at:
+          type: string
+          format: date-time
+          description: The ISO string for when the message was created.
+        conversation_id:
+          type: string
+          description: The ID of the conversation the message belongs to.
+        credits:
+          $ref: '#/components/schemas/ConverseCredits'
+          nullable: true
+        citations:
+          $ref: '#/components/schemas/Citations'
+          nullable: true
+    CreateConversationRequest:
+      type: object
+      description: Request body for creating a new conversation.
       properties:
         name:
-          $ref: '#/components/schemas/AgentTool'
-        connection_id:
           type: string
-          description: The ID of the connection to use for the tool.
-    AgentTool:
-      type: string
-      enum:
-        - data_analysis
-        - semantic_search
-        - agent_memory
-        - schema_info
-        - table_info
-        - create_dataset
-        - calendar
-        - email
-        - schedule_recurring_message_tool
-        - procore
-        - egnyte
-        - notion
-        - google_sheets
-        - slack
-        - microsoft_teams
-        - sharepoint
-        - drive
-        - fieldwire
-        - webbrowser
-        - pdf_manipulation
-        - pdf_generator
-        - acc
-        - acc_forms
-        - docusign
-        - webflow
-        - hubspot
-        - nec
-        - github
-        - data_classification
-        - data_extraction
-        - image_detection
-        - attachment_extraction
-        - pdf_extraction
-        - connect_data
-        - download_data
-        - web_search
-        - fetch_url
-        - company_prospect_researcher
-        - people_prospect_researcher
-    LlmModel:
-      type: string
-      description: The LLM used to generate responses.
-      enum:
-        - gemini-1.5-flash-001
-        - gemini-1.5-flash-002
-        - gemini-2.0-flash-001
-        - gemini-2.0-flash
-        - gemini-2.5-flash-preview-04-17
-        - gemini-2.5-flash
-        - gemini-2.5-flash-lite
-        - gemini-1.5-pro-001
-        - gemini-1.5-pro-002
-        - gemini-2.5-pro-preview-05-06
-        - gemini-2.5-pro
-        - chatgpt-4o-latest
-        - gpt-4
-        - gpt-4-turbo
-        - gpt-4o
-        - gpt-4o-mini
-        - gpt-5
+          description: Name for the conversation.
+          nullable: true
     ConverseRequestBody:
       type: object
       required:
@@ -2582,14 +3106,26 @@ components:
               items:
                 $ref: '#/components/schemas/InputItem'
         config:
-          $ref: '#/components/schemas/ConverseConfig'
-          description: The config that overrides the default config of the agent for that converse.
+          description: Override the agent config for this converse call. This is applied as a partial override.
           nullable: true
+          allOf:
+            - $ref: '#/components/schemas/InputAgentConfig'
+            - type: object
+              properties:
+                agent_tools:
+                  description: Deprecated, use tools instead
+                  deprecated: true
+                  $ref: '#/components/schemas/AgentTools'
+                disabled_agent_tools:
+                  description: Deprecated, use disabled_tools instead
+                  deprecated: true
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AgentTool'
+                  nullable: true
         agent_id:
           type: string
-          description: >-
-            The ID of the agent that should be used for the converse. If both agent_id and conversation_id
-            aren't provided - the new agent is created.
+          description: The ID of the agent that should be used for the converse.
           nullable: true
         conversation_id:
           type: string
@@ -2611,19 +3147,6 @@ components:
             citations for factual statements.
           default: false
           nullable: true
-        auto_approve_actions:
-          description: >-
-            Auto-approve actions (skip halting for human approval). If boolean true: all tools auto-approve.
-            If object: per-tool toggle by toolId (true to skip halting forhuman approval).
-          nullable: true
-          oneOf:
-            - type: boolean
-              default: false
-              nullable: true
-            - type: object
-              additionalProperties:
-                type: boolean
-              nullable: true
         secret_ids:
           type: array
           description: >-
@@ -2788,40 +3311,10 @@ components:
         - secret_id
     ConverseAllResponses:
       oneOf:
-        - $ref: '#/components/schemas/ConverseResponse'
+        - $ref: '#/components/schemas/ConversationMessage'
         - $ref: '#/components/schemas/ConverseEvent'
     ConverseResponse:
-      type: object
-      required:
-        - object
-        - content
-        - agent_id
-        - conversation_id
-      properties:
-        object:
-          type: string
-          enum:
-            - conversation.message
-        content:
-          type: array
-          description: Contents of the converse response.
-          items:
-            type: object
-            required:
-              - text
-            properties:
-              text:
-                type: string
-        agent_id:
-          type: string
-          description: The ID of the agent used for the converse.
-        conversation_id:
-          type: string
-          description: The ID of the agent conversation.
-        citations:
-          $ref: '#/components/schemas/Citations'
-        credits:
-          $ref: '#/components/schemas/ConverseCredits'
+      $ref: '#/components/schemas/ConversationMessage'
     Citations:
       type: array
       description: >-
@@ -2864,117 +3357,6 @@ components:
           description: An array of text snippets from the knowledge that confirm the citation.
           items:
             type: string
-    ConverseConfig:
-      type: object
-      properties:
-        system_prompt:
-          type: string
-          description: Directs your AI Agent's operational behavior.
-          nullable: true
-        agent_model:
-          $ref: '#/components/schemas/AgentModel'
-          nullable: true
-        llm_model:
-          $ref: '#/components/schemas/LlmModel'
-          nullable: true
-        knowledge_ids:
-          type: array
-          nullable: true
-          description: >-
-            Array of Knowledge IDs the agent should use during the converse. If not provided - default
-            settings are used. If null provided - all available knowledge is used.
-          items:
-            type: string
-        agent_tools:
-          description: >
-            Array of the agent tools to enable. If not provided - default tools of the agent are used. If
-            empty list provided - none of the tools are used. If null provided - all tools are used. When
-            connection_id is set for a tool, it will use that specific connection instead of the default one.
-
-
-            Knowledge management tools:
-
-            - data_analysis: Answer statistical or analytical questions like "Show my quarterly revenue
-            growth"
-
-            - semantic_search: Search knowledge through natural language queries.
-
-            - agent_memory: Agents can remember experiences, conversations and user preferences.
-
-            - schema_info: Helps the Agent understand column names and dataset purpose. Avoid disabling
-
-            - table_info: Allow the AI Agent to get information about datasets and schemas
-
-            - create_dataset: Agents respond with data tables
-
-
-            Actions:
-
-            - calendar: Allow the Agent to access and make changes to your Google Calendar
-
-            - schedule_recurring_message_tool: Eliminate busywork such as: "Send a summary of today's meetings
-            at 5pm on workdays"
-
-
-            Data processing tools:
-
-            - data_classification: Agents handle queries like "Label these emails as high, medium, or low
-            priority"
-
-            - data_extraction: Helps the agent understand data from other tools. Avoid disabling
-
-            - image_detection: Extract information from images using AI
-
-            - pdf_extraction: Extraction of information from PDFs using AI
-
-
-            Enhanced response tools:
-
-            - connect_data: Agents provide buttons to import data in response to queries like "Connect
-            Hubspot"
-
-            - download_data: Agents handle queries like "download the table as CSV"
-
-
-            Web tools:
-
-            - web_search: Agents search the internet, and provide links to their sources
-
-            - fetch_url: Fetch URL content
-
-            - company_prospect_researcher: Agents provide information about companies
-
-            - people_prospect_researcher: Agents provide information about people
-          type: array
-          nullable: true
-          items:
-            oneOf:
-              - $ref: '#/components/schemas/AgentTool'
-              - $ref: '#/components/schemas/AgentToolItem'
-        disabled_agent_tools:
-          description: >
-            Array of the agent tools to disable. Disabling is performed after the 'agent_tools' rules are
-            applied.
-
-            For example, agent_tools: null and disabled_agent_tools: [data_analysis] will enable everything
-            but the data_analysis tool.
-
-            If nothing or [] is provided, nothing is disabled and therefore only the agent_tools setting is
-            relevant.
-          type: array
-          items:
-            $ref: '#/components/schemas/AgentTool'
-          nullable: true
-        custom_prompt:
-          type: string
-          description: Use custom prompt to instruct the style and formatting of the agent's response
-          nullable: true
-        planning_prompt:
-          type: string
-          description: >-
-            Define the planning strategy your AI Agent should use when breaking down tasks and solving
-            problems
-          nullable: true
     ConverseEvent:
       description: Events that are sent via SSE. Not available when stream isn't defined in request body or set to false
       oneOf:
@@ -3087,7 +3469,7 @@ components:
             - description
           properties:
             name:
-              type: string
+              $ref: '#/components/schemas/ToolName'
               description: The name of the tool that was called.
             label:
               type: string
@@ -3095,9 +3477,6 @@ components:
             description:
               type: string
               description: The description of the tool that was called.
-            icon:
-              type: string
-              description: The icon of the tool that was called.
         output:
           type: string
           description: The output of the tool call.
