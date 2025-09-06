@@ -2616,6 +2616,111 @@ paths:
             page = client.organization.teamspaces.list()
             page = page.data[0]
             print(page.id)
+  /tools:
+    get:
+      summary: List tools
+      operationId: Tools.listTools
+      description: Returns the list of available tools that can be used by agents.
+      tags:
+        - Tools
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/after'
+        - $ref: '#/components/parameters/before'
+      responses:
+        '200':
+          description: List of tools
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                properties:
+                  object:
+                    type: string
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ToolDef'
+                    description: An array containing the available tools.
+                  has_more:
+                    type: boolean
+                    description: >-
+                      Whether or not there are more elements available after this set. If false, this set
+                      comprises the end of the list.
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            // Automatically fetches more pages as needed.
+            for await (const toolDef of client.tools.list()) {
+              console.log(toolDef.description);
+            }
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            page = client.tools.list()
+            page = page.data[0]
+            print(page.description)
+  /tools/{tool_name}:
+    get:
+      summary: Retrieve tool
+      operationId: Tools.retrieveTool
+      description: Retrieves a specific tool by its identifier.
+      tags:
+        - Tools
+      parameters:
+        - name: tool_name
+          in: path
+          required: true
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/ToolName'
+              - type: string
+          description: The name of the tool to retrieve.
+      responses:
+        '200':
+          description: Retrieved tool
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolDef'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const toolDef = await client.tools.retrieve('data_analysis');
+
+            console.log(toolDef.description);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            tool_def = client.tools.retrieve(
+                "data_analysis",
+            )
+            print(tool_def.description)
 components:
   securitySchemes:
     BearerAuth:
@@ -2858,47 +2963,6 @@ components:
           type: string
           description: The ID of the connection to use for the tool.
           nullable: true
-    ToolName:
-      type: string
-      enum:
-        - data_analysis
-        - semantic_search
-        - agent_memory
-        - schema_info
-        - table_info
-        - create_dataset
-        - calendar
-        - email
-        - schedule_recurring_message_tool
-        - procore
-        - egnyte
-        - notion
-        - google_sheets
-        - slack
-        - microsoft_teams
-        - sharepoint
-        - drive
-        - fieldwire
-        - webbrowser
-        - pdf_manipulation
-        - pdf_generator
-        - acc
-        - docusign
-        - webflow
-        - hubspot
-        - nec
-        - github
-        - data_classification
-        - data_extraction
-        - image_detection
-        - attachment_extraction
-        - pdf_extraction
-        - connect_data
-        - download_data
-        - web_search
-        - fetch_url
-        - company_prospect_researcher
-        - people_prospect_researcher
     LlmModel:
       oneOf:
         - $ref: '#/components/schemas/LlmModelEnum'
@@ -3088,6 +3152,86 @@ components:
           type: string
           description: Name for the conversation.
           nullable: true
+    AgentModel1:
+      type: string
+      enum:
+        - magpie-1
+        - magpie-1.1
+        - magpie-1.1-flash
+      description: The version of Datagrid's agent brain.
+    AgentToolItem:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          $ref: '#/components/schemas/AgentTool'
+        connection_id:
+          type: string
+          description: The ID of the connection to use for the tool.
+    AgentTool:
+      type: string
+      enum:
+        - data_analysis
+        - semantic_search
+        - agent_memory
+        - schema_info
+        - table_info
+        - create_dataset
+        - calendar
+        - email
+        - schedule_recurring_message_tool
+        - procore
+        - egnyte
+        - notion
+        - google_sheets
+        - slack
+        - microsoft_teams
+        - sharepoint
+        - drive
+        - fieldwire
+        - webbrowser
+        - pdf_manipulation
+        - pdf_generator
+        - acc
+        - docusign
+        - webflow
+        - hubspot
+        - nec
+        - github
+        - linkedin
+        - data_classification
+        - data_extraction
+        - image_detection
+        - attachment_extraction
+        - pdf_extraction
+        - connect_data
+        - download_data
+        - web_search
+        - fetch_url
+        - company_prospect_researcher
+        - people_prospect_researcher
+    LlmModel1:
+      type: string
+      description: The LLM used to generate responses.
+      enum:
+        - gemini-1.5-flash-001
+        - gemini-1.5-flash-002
+        - gemini-2.0-flash-001
+        - gemini-2.0-flash
+        - gemini-2.5-flash-preview-04-17
+        - gemini-2.5-flash
+        - gemini-2.5-flash-lite
+        - gemini-1.5-pro-001
+        - gemini-1.5-pro-002
+        - gemini-2.5-pro-preview-05-06
+        - gemini-2.5-pro
+        - chatgpt-4o-latest
+        - gpt-4
+        - gpt-4-turbo
+        - gpt-4o
+        - gpt-4o-mini
+        - gpt-5
     ConverseRequestBody:
       type: object
       required:
@@ -3119,9 +3263,7 @@ components:
                 disabled_agent_tools:
                   description: Deprecated, use disabled_tools instead
                   deprecated: true
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AgentTool'
+                  $ref: '#/components/schemas/AgentTools'
                   nullable: true
         agent_id:
           type: string
@@ -3349,6 +3491,7 @@ components:
             - record
             - web_search
             - sql_query_result
+            - action
         knowledge_id:
           type: string
           description: Id of the knowledge.
@@ -3462,21 +3605,7 @@ components:
             - completed
             - failed
         tool:
-          type: object
-          required:
-            - name
-            - label
-            - description
-          properties:
-            name:
-              $ref: '#/components/schemas/ToolName'
-              description: The name of the tool that was called.
-            label:
-              type: string
-              description: The label of the tool that was called.
-            description:
-              type: string
-              description: The description of the tool that was called.
+          $ref: '#/components/schemas/ToolDef'
         output:
           type: string
           description: The output of the tool call.
@@ -3520,7 +3649,6 @@ components:
         - id
         - filename
         - created_at
-        - bytes
         - media_type
       properties:
         object:
@@ -4259,6 +4387,72 @@ components:
           type: string
           format: date-time
           description: The ISO string for when the teamspace was created.
+    ToolDef:
+      type: object
+      description: The `Tool` object represents a tool that can be used by agents.
+      required:
+        - object
+        - name
+        - label
+        - description
+      properties:
+        object:
+          type: string
+          enum:
+            - tool
+          description: The object type, which is always `tool`.
+        name:
+          type: string
+          description: The unique identifier name used to reference the tool.
+        label:
+          type: string
+          description: The display name of the tool.
+        description:
+          type: string
+          description: A detailed description of what the tool does.
+    ToolName:
+      type: string
+      enum:
+        - data_analysis
+        - semantic_search
+        - agent_memory
+        - schema_info
+        - table_info
+        - create_dataset
+        - calendar
+        - email
+        - schedule_recurring_message_tool
+        - procore
+        - egnyte
+        - notion
+        - google_sheets
+        - slack
+        - microsoft_teams
+        - sharepoint
+        - drive
+        - fieldwire
+        - webbrowser
+        - pdf_manipulation
+        - pdf_generator
+        - acc
+        - docusign
+        - webflow
+        - hubspot
+        - nec
+        - github
+        - trimble_project_site
+        - linkedin_posts
+        - data_classification
+        - data_extraction
+        - image_detection
+        - attachment_extraction
+        - pdf_extraction
+        - connect_data
+        - download_data
+        - web_search
+        - fetch_url
+        - company_prospect_researcher
+        - people_prospect_researcher
     KnowledgeMetadata:
       type: object
       description: Represents metadata for a knowledge object
