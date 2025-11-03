@@ -1222,7 +1222,7 @@ paths:
                   nullable: false
                   description: >-
                     The files to be uploaded and learned. Supported media types are `pdf`, `json`, `csv`,
-                    `text`, `png`, `jpeg`, `excel`, `google sheets`.
+                    `text`, `png`, `jpeg`, `excel`, `google sheets`, `docx`, `pptx`.
       responses:
         '201':
           description: Successfully created knowledge
@@ -1371,25 +1371,31 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
-              description: The new name for the `knowledge`.
-              required:
-                - name
               properties:
                 name:
                   type: string
+                  description: The new name for the `knowledge`.
+                  nullable: true
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  nullable: true
+                  description: >-
+                    The files to replace existing knowledge. When provided, all existing data will be removed
+                    from the knowledge and replaced with these files. Supported media types are `pdf`, `json`,
+                    `csv`, `text`, `png`, `jpeg`, `excel`, `google sheets`, `docx`, `pptx`.
       responses:
         '200':
           description: Successfully updated knowledge
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  name:
-                    type: string
+                $ref: '#/components/schemas/Knowledge'
       x-codeSamples:
         - lang: JavaScript
           source: |-
@@ -1399,9 +1405,9 @@ paths:
               apiKey: 'My API Key',
             });
 
-            const knowledge = await client.knowledge.update('knowledge_id', { name: 'name' });
+            const knowledge = await client.knowledge.update('knowledge_id');
 
-            console.log(knowledge.name);
+            console.log(knowledge.id);
         - lang: Python
           source: |-
             from datagrid_ai import Datagrid
@@ -1411,9 +1417,8 @@ paths:
             )
             knowledge = client.knowledge.update(
                 knowledge_id="knowledge_id",
-                name="name",
             )
-            print(knowledge.name)
+            print(knowledge.id)
     delete:
       summary: Delete knowledge
       operationId: Knowledge.deleteKnowledge
