@@ -1455,6 +1455,43 @@ paths:
             client.knowledge.delete(
                 "knowledge_id",
             )
+  /knowledge/{knowledge_id}/reindex:
+    post:
+      summary: Reindex knowledge
+      operationId: reindexKnowledge
+      description: Manually trigger a full re-indexing of the knowledge.
+      tags:
+        - Knowledge
+      parameters:
+        - name: knowledge_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The id of the knowledge to reindex.
+      responses:
+        '204':
+          description: Successfully triggered reindex
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            await client.knowledge.reindex('knowledge_id');
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            client.knowledge.reindex(
+                "knowledge_id",
+            )
   /user-memories:
     get:
       summary: List User Memory
@@ -1732,6 +1769,55 @@ paths:
                 role="admin",
             )
             print(organization_user.id)
+  /beta/rewrite:
+    post:
+      summary: Rewrite text using AI
+      operationId: Beta.Rewrite.rewriteText
+      description: Rewrite text using AI with context-aware rewriting capabilities.
+      tags:
+        - Beta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RewriteRequest'
+      responses:
+        '200':
+          description: Successfully rewritten text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewriteResponse'
+      x-codeSamples:
+        - lang: JavaScript
+          source: |-
+            import Datagrid from 'datagrid-ai';
+
+            const client = new Datagrid({
+              apiKey: 'My API Key',
+            });
+
+            const rewriteResponse = await client.beta.rewrite.rewriteText({
+              full_text: 'full_text',
+              prompt: 'prompt',
+              text_to_rewrite: 'text_to_rewrite',
+            });
+
+            console.log(rewriteResponse.rewritten_text);
+        - lang: Python
+          source: |-
+            from datagrid_ai import Datagrid
+
+            client = Datagrid(
+                api_key="My API Key",
+            )
+            rewrite_response = client.beta.rewrite.rewrite_text(
+                full_text="full_text",
+                prompt="prompt",
+                text_to_rewrite="text_to_rewrite",
+            )
+            print(rewrite_response.rewritten_text)
   /search:
     get:
       summary: Search
@@ -3188,88 +3274,6 @@ components:
           type: string
           description: Name for the conversation.
           nullable: true
-    AgentModel1:
-      type: string
-      enum:
-        - magpie-1
-        - magpie-1.1
-        - magpie-1.1-flash
-        - magpie-2.0
-      description: The version of Datagrid's agent brain.
-    AgentToolItem:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          $ref: '#/components/schemas/AgentTool'
-        connection_id:
-          type: string
-          description: The ID of the connection to use for the tool.
-    AgentTool:
-      type: string
-      enum:
-        - data_analysis
-        - semantic_search
-        - agent_memory
-        - schema_info
-        - table_info
-        - create_dataset
-        - calendar
-        - email
-        - schedule_recurring_message_tool
-        - procore
-        - egnyte
-        - notion
-        - google_sheets
-        - slack
-        - microsoft_teams
-        - sharepoint
-        - drive
-        - fieldwire
-        - webbrowser
-        - pdf_manipulation
-        - pdf_generator
-        - acc
-        - docusign
-        - webflow
-        - hubspot
-        - nec
-        - github
-        - linkedin
-        - code_tool
-        - data_classification
-        - data_extraction
-        - image_detection
-        - attachment_extraction
-        - pdf_extraction
-        - connect_data
-        - download_data
-        - web_search
-        - fetch_url
-        - company_prospect_researcher
-        - people_prospect_researcher
-    LlmModel1:
-      type: string
-      description: The LLM used to generate responses.
-      enum:
-        - gemini-1.5-flash-001
-        - gemini-1.5-flash-002
-        - gemini-2.0-flash-001
-        - gemini-2.0-flash
-        - gemini-2.5-flash-preview-04-17
-        - gemini-2.5-flash
-        - gemini-2.5-flash-lite
-        - gemini-1.5-pro-001
-        - gemini-1.5-pro-002
-        - gemini-2.5-pro-preview-05-06
-        - gemini-2.5-pro
-        - chatgpt-4o-latest
-        - gpt-4
-        - gpt-4-turbo
-        - gpt-4o
-        - gpt-4o-mini
-        - gpt-5
     ConverseRequestBody:
       type: object
       required:
@@ -3299,7 +3303,7 @@ components:
                   deprecated: true
                   $ref: '#/components/schemas/AgentTools'
                 disabled_agent_tools:
-                  description: Deprecated, use disabled_tools instead
+                  description: Deprecated, use disabled_tools instead. If not provided - no tools are disabled.
                   deprecated: true
                   $ref: '#/components/schemas/AgentTools'
                   nullable: true
@@ -3337,9 +3341,11 @@ components:
           nullable: true
         text:
           type: object
-          description: |
+          description: >
             Contains the format property used to specify the structured output schema.
-            Structured output is currently only supported by the default agent model, magpie-1.1.
+
+            Structured output is not supported only supported by the default agent model, magpie-1.1 and
+            magpie-2.0.
           nullable: true
           properties:
             format:
@@ -3674,14 +3680,6 @@ components:
         consumed:
           type: number
           description: The number of credits consumed by the converse call.
-    KnowledgeCredits:
-      type: object
-      required:
-        - consumed
-      properties:
-        consumed:
-          type: number
-          description: The number of credits consumed by the knowledge.
     DatagridFile:
       type: object
       description: The `File` object represents a document that has been uploaded to Datagrid.
@@ -3949,6 +3947,14 @@ components:
         `partial` indicates that the knowledge is partially learned. The agent may use some aspects of it when
         responding. `ready` indicates that the knowledge is fully learned and will be completely utilized in
         responses.
+    KnowledgeCredits:
+      type: object
+      required:
+        - consumed
+      properties:
+        consumed:
+          type: number
+          description: The number of credits consumed by the knowledge.
     UserMemory:
       type: object
       required:
@@ -4103,6 +4109,30 @@ components:
             - admin
             - member
           description: 'The role to assign to the user in the organization. Available roles: admin, member'
+    RewriteRequest:
+      type: object
+      required:
+        - prompt
+        - text_to_rewrite
+        - full_text
+      properties:
+        prompt:
+          type: string
+          description: The prompt with instructions for rewriting the text.
+        text_to_rewrite:
+          type: string
+          description: The text to be rewritten.
+        full_text:
+          type: string
+          description: The full text of the document for context.
+    RewriteResponse:
+      type: object
+      required:
+        - rewritten_text
+      properties:
+        rewritten_text:
+          type: string
+          description: The rewritten text.
     SearchResult:
       type: object
       required:
@@ -4463,13 +4493,13 @@ components:
             - create_dataset
             - find_files
             - read_file_contents
+            - file_analysis
             - calendar
             - email
             - schedule_recurring_message_tool
             - procore
             - egnyte
             - notion
-            - google_sheets
             - slack
             - microsoft_teams
             - sharepoint
@@ -4488,12 +4518,15 @@ components:
             - linkedin
             - google_docs
             - google_slides
+            - google_sheets
+            - avoma
             - code_tool
             - data_classification
             - data_extraction
             - image_detection
             - attachment_extraction
             - pdf_extraction
+            - pdf_page_info
             - youtube_video_analysis
             - calculate
             - pdf_form_filling
